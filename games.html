@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>菌在玩</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .hero {
+      background-image: url('assets/bg/蘑菇背景3.png');
+      min-height: 55vh;
+    }
+    body {
+      background-image: url('assets/bg/蘑菇背景3.png');
+      background-size: cover;
+      background-position: center top;
+      background-attachment: fixed;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: rgba(4,6,15,0.88);
+      pointer-events: none;
+      z-index: 0;
+    }
+    nav, section, footer { position: relative; z-index: 1; }
+
+    /* 游戏简介区 */
+    .intro-card {
+      padding: 2.5rem 3rem;
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .intro-card p {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      color: var(--text-main);
+      line-height: 2;
+      font-style: italic;
+    }
+
+    /* 游戏类别网格 */
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .cat-card {
+      padding: 1.8rem;
+      transition: transform 0.3s;
+    }
+    .cat-card:hover { transform: translateY(-4px); }
+
+    .cat-header {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.8rem;
+      border-bottom: 1px solid var(--teal-dim);
+    }
+    .cat-icon {
+      font-size: 1.8rem;
+      flex-shrink: 0;
+    }
+    .cat-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      color: var(--text-bright);
+      letter-spacing: 0.08em;
+    }
+    .cat-subtitle {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+      margin-top: 0.2rem;
+    }
+
+    .game-list {
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+    .game-pill {
+      font-size: 0.8rem;
+      color: var(--text-main);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 6px;
+      padding: 0.25rem 0.7rem;
+      transition: all 0.25s;
+      cursor: default;
+    }
+    .game-pill:hover {
+      background: rgba(0,229,204,0.07);
+      border-color: var(--teal-dim);
+      color: var(--teal);
+    }
+
+    /* TRPG 特别展示 */
+    .trpg-highlight {
+      background: linear-gradient(135deg,
+        rgba(0,229,204,0.05) 0%,
+        rgba(26,143,255,0.04) 100%
+      );
+      border: 1px solid var(--teal-dim);
+      border-radius: 16px;
+      padding: 2.5rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .trpg-highlight h3 {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 1.2rem;
+      color: var(--teal);
+      margin-bottom: 1rem;
+      letter-spacing: 0.1em;
+    }
+    .trpg-desc {
+      font-size: 0.9rem;
+      color: var(--text-main);
+      line-height: 1.85;
+      margin-bottom: 1.2rem;
+    }
+    .trpg-tags-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    /* 游戏哲学引用 */
+    .game-quote {
+      text-align: center;
+      padding: 3rem 2rem;
+      max-width: 650px;
+      margin: 0 auto;
+    }
+    .game-quote blockquote {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.3rem;
+      color: var(--text-bright);
+      font-style: italic;
+      line-height: 1.9;
+      margin-bottom: 1rem;
+    }
+    .game-quote blockquote::before {
+      content: '"';
+      font-size: 3rem;
+      color: var(--gold);
+      opacity: 0.4;
+      line-height: 0;
+      vertical-align: -0.4em;
+      margin-right: 0.2rem;
+    }
+    .game-quote cite {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      letter-spacing: 0.15em;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">✦ 白白菌 ✦</a>
+  <ul class="nav-links">
+    <li><a href="index.html">菌问好</a></li>
+    <li><a href="projects.html">菌在忙</a></li>
+    <li><a href="games.html" class="active">菌在玩</a></li>
+    <li><a href="gallery.html">菌做梦</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-overlay"></div>
+  <div class="particles" id="particles"></div>
+  <div class="hero-content" style="text-align:center;padding:0 2rem;">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--teal);letter-spacing:0.2em;font-style:italic;opacity:0.8;">
+      Game Archives · 杂食玩家
+    </div>
+  </div>
+</section>
+
+<!-- 游戏哲学 -->
+<section class="section">
+  <div class="container">
+    <div class="game-quote fade-in">
+      <blockquote>
+        有一种东西是绝对不能被压缩的——体验。
+      </blockquote>
+      <cite>— 杂食玩家 · 跑团人 · 内容设计者</cite>
+    </div>
+  </div>
+</section>
+
+<!-- TRPG 重点 -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="ornament fade-in">
+      <div class="ornament-line"></div>
+      <div class="ornament-diamond"></div>
+      <div class="ornament-line right"></div>
+    </div>
+    <h2 class="section-title fade-in">交互式叙事 · TRPG</h2>
+    <p class="section-subtitle fade-in">Interactive Narrative · 核心热爱</p>
+
+    <div class="trpg-highlight fade-in">
+      <h3>✦ 跑团 · 模组创作 · 规则设计</h3>
+      <p class="trpg-desc">
+        深度参与 TRPG 全流程——从玩家视角到 KP（主持人）创作，熟悉不同系统的数值规则与世界观构筑。
+        自创 PVPVE 多人模组，参与口述团、玩家社区规则设计，兼具玩家同理心和内容设计能力。
+      </p>
+      <p class="trpg-desc">
+        这种对叙事结构、角色驱动力、世界观自洽性的深度认知，
+        最终转化为了 TRPG Meta-Skill 技术项目——让 AI 从规则卡面中孵化出可插拔的数值引擎与车卡流程。
+      </p>
+      <div class="trpg-tags-row">
+        <span class="tag">COC</span>
+        <span class="tag">DND</span>
+        <span class="tag">蛹虫下</span>
+        <span class="tag">显微镜</span>
+        <span class="tag">无限流</span>
+        <span class="tag tag-gold">文游</span>
+        <span class="tag tag-gold">AI 文游</span>
+        <span class="tag tag-gold">自创模组</span>
+        <span class="tag tag-gold">口述团</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 游戏品类档案 -->
+<section class="section">
+  <div class="container">
+    <div class="ornament fade-in">
+      <div class="ornament-line"></div>
+      <div class="ornament-diamond"></div>
+      <div class="ornament-line right"></div>
+    </div>
+    <h2 class="section-title fade-in">游戏品类档案</h2>
+    <p class="section-subtitle fade-in">Genre Archives · 涉猎地图</p>
+
+    <div class="category-grid fade-in">
+
+      <div class="glass cat-card">
+        <div class="cat-header">
+          <div class="cat-icon">🃏</div>
+          <div>
+            <div class="cat-title">社交推理 · 派对联机</div>
+            <div class="cat-subtitle">Social Deduction · Party</div>
+          </div>
+        </div>
+        <ul class="game-list">
+          <li class="game-pill">冬日计划</li>
+          <li class="game-pill">鹅鸭杀</li>
+          <li class="game-pill">Among Us</li>
+          <li class="game-pill">狼人杀</li>
+          <li class="game-pill">猛兽派对</li>
+          <li class="game-pill">你画我猜</li>
+          <li class="game-pill">逃离鸭科夫</li>
+          <li class="game-pill">枪豆人</li>
+          <li class="game-pill">战斗砖块剧场</li>
+        </ul>
+      </div>
+
+      <div class="glass cat-card">
+        <div class="cat-header">
+          <div class="cat-icon">🏕️</div>
+          <div>
+            <div class="cat-title">生存建造 · 沙盒独立</div>
+            <div class="cat-subtitle">Survival Sandbox</div>
+          </div>
+        </div>
+        <ul class="game-list">
+          <li class="game-pill">饥荒</li>
+          <li class="game-pill">环世界</li>
+          <li class="game-pill">森林</li>
+          <li class="game-pill">Muck</li>
+          <li class="game-pill">辐射避难所</li>
+        </ul>
+      </div>
+
+      <div class="glass cat-card">
+        <div class="cat-header">
+          <div class="cat-icon">⚔️</div>
+          <div>
+            <div class="cat-title">重度 SLG</div>
+            <div class="cat-subtitle">Hardcore Strategy</div>
+          </div>
+        </div>
+        <ul class="game-list">
+          <li class="game-pill">全面战争：战锤</li>
+          <li class="game-pill">群星</li>
+        </ul>
+      </div>
+
+      <div class="glass cat-card">
+        <div class="cat-header">
+          <div class="cat-icon">🎯</div>
+          <div>
+            <div class="cat-title">轻度 SLG</div>
+            <div class="cat-subtitle">Casual Strategy</div>
+          </div>
+        </div>
+        <ul class="game-list">
+          <li class="game-pill">生存 33 天</li>
+          <li class="game-pill">苏丹的游戏</li>
+          <li class="game-pill">口袋大作战</li>
+          <li class="game-pill">扫雷地牢</li>
+        </ul>
+      </div>
+
+      <div class="glass cat-card">
+        <div class="cat-header">
+          <div class="cat-icon">🃏</div>
+          <div>
+            <div class="cat-title">卡牌构筑 · Roguelike</div>
+            <div class="cat-subtitle">Deckbuilding Roguelike</div>
+          </div>
+        </div>
+        <ul class="game-list">
+          <li class="game-pill">杀戮尖塔</li>
+          <li class="game-pill">月圆之夜</li>
+        </ul>
+      </div>
+
+      <div class="glass cat-card">
+        <div class="cat-header">
+          <div class="cat-icon">⚗️</div>
+          <div>
+            <div class="cat-title">模拟经营 · 独立策略</div>
+            <div class="cat-subtitle">Sim & Management</div>
+          </div>
+        </div>
+        <ul class="game-list">
+          <li class="game-pill">药剂工艺：炼金模拟器</li>
+          <li class="game-pill">太吾绘卷</li>
+        </ul>
+      </div>
+
+      <div class="glass cat-card">
+        <div class="cat-header">
+          <div class="cat-icon">✨</div>
+          <div>
+            <div class="cat-title">二次元收集养成</div>
+            <div class="cat-subtitle">Gacha Collection</div>
+          </div>
+        </div>
+        <ul class="game-list">
+          <li class="game-pill">Fate</li>
+          <li class="game-pill">舰队 Collection</li>
+        </ul>
+      </div>
+
+      <div class="glass cat-card">
+        <div class="cat-header">
+          <div class="cat-icon">🌏</div>
+          <div>
+            <div class="cat-title">开放大世界</div>
+            <div class="cat-subtitle">Open World</div>
+          </div>
+        </div>
+        <ul class="game-list">
+          <li class="game-pill">燕云十六声</li>
+        </ul>
+      </div>
+
+      <div class="glass cat-card">
+        <div class="cat-header">
+          <div class="cat-icon">🌸</div>
+          <div>
+            <div class="cat-title">休闲小游戏</div>
+            <div class="cat-subtitle">Casual Indie</div>
+          </div>
+        </div>
+        <ul class="game-list">
+          <li class="game-pill">抓大鹅</li>
+          <li class="game-pill">花札物语</li>
+          <li class="game-pill">暮光海岛</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>✦ 白白菌 · 菌类居民 ✦ &nbsp;&nbsp;|&nbsp;&nbsp; <span>made by 优优菌</span></p>
+</footer>
+
+<script>
+(function(){
+  const container = document.getElementById('particles');
+  for(let i=0;i<35;i++){
+    const p = document.createElement('div');
+    p.className = 'spore';
+    const size = 2 + Math.random()*4;
+    const isBlue = Math.random() < 0.3;
+    const color = isBlue ? '26,143,255' : '0,229,204';
+    p.style.cssText = `
+      left:${Math.random()*100}%;top:${100+Math.random()*10}%;
+      width:${size}px;height:${size}px;
+      background:rgba(${color},${0.4+Math.random()*0.5});
+      box-shadow:0 0 ${size*2}px rgba(${color},0.7);
+      animation-duration:${10+Math.random()*18}s;
+      animation-delay:-${Math.random()*22}s;
+    `;
+    container.appendChild(p);
+  }
+})();
+const observer = new IntersectionObserver(e=>{
+  e.forEach(el=>{ if(el.isIntersecting) el.target.classList.add('visible'); });
+},{threshold:0.1});
+document.querySelectorAll('.fade-in').forEach(el=>observer.observe(el));
+</script>
+</body>
+</html>

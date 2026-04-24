@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>母菌</title>
+<style>
+  :root {
+    --bg: #060810;
+    --bg-card: #0a0f1a;
+    --bg-card2: #0c1320;
+    --border: rgba(0, 230, 160, 0.12);
+    --border-bright: rgba(0, 230, 160, 0.35);
+    --glow-green: #00e69f;
+    --glow-teal: #00c9d4;
+    --glow-cyan: #00aaff;
+    --glow-purple: #9b59f5;
+    --text: #c4d4e4;
+    --text-muted: #5a7080;
+    --text-dim: #3a5060;
+    --accent: #00e69f;
+    --accent2: #00c9d4;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── CANVAS PARTICLES ── */
+  #spore-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.55;
+  }
+
+  /* ── MYCELIA GRID ── */
+  .mycelia-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 20% 10%, rgba(0,230,159,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0,200,212,0.05) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 60% at 50% 50%, rgba(155,89,245,0.03) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* ── LAYOUT ── */
+  .page-wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 20px 80px;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(16px);
+    background: rgba(6,8,16,0.85);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+  .nav-brand {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--glow-green);
+    text-shadow: 0 0 12px var(--glow-green);
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+  .nav-links {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .nav-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 12.5px;
+    letter-spacing: 0.5px;
+    transition: color 0.2s, text-shadow 0.2s;
+  }
+  .nav-links a:hover {
+    color: var(--glow-green);
+    text-shadow: 0 0 8px var(--glow-green);
+  }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 18px 0 10px;
+    text-align: center;
+    position: relative;
+  }
+  .hero-ring {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 420px; height: 420px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,230,159,0.06);
+    animation: ringPulse 4s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .hero-ring:nth-child(2) { width: 320px; height: 320px; animation-delay: 1.3s; }
+  .hero-ring:nth-child(3) { width: 220px; height: 220px; animation-delay: 2.6s; }
+  @keyframes ringPulse {
+    0%, 100% { opacity: 0.3; transform: translate(-50%,-50%) scale(1); }
+    50% { opacity: 0.7; transform: translate(-50%,-50%) scale(1.02); }
+  }
+  .hero-name {
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    color: #fff;
+    text-shadow:
+      0 0 20px rgba(0,230,159,0.6),
+      0 0 60px rgba(0,230,159,0.25),
+      0 0 100px rgba(0,200,212,0.15);
+    position: relative;
+    z-index: 1;
+  }
+  .hero-en {
+    font-size: 14px;
+    letter-spacing: 6px;
+    color: var(--glow-teal);
+    text-shadow: 0 0 16px var(--glow-teal);
+    margin-top: 6px;
+    text-transform: uppercase;
+  }
+  .hero-title {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+  }
+  .hero-title span {
+    color: var(--glow-green);
+    font-weight: 600;
+  }
+  .hero-quote {
+    margin: 28px auto 0;
+    max-width: 640px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.8;
+    border-left: 2px solid var(--glow-green);
+    padding-left: 16px;
+    text-align: left;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-links {
+    margin-top: 14px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border: 1px solid var(--border-bright);
+    border-radius: 20px;
+    color: var(--glow-green);
+    text-decoration: none;
+    font-size: 11.5px;
+    letter-spacing: 0.5px;
+    transition: all 0.25s;
+    background: rgba(0,230,159,0.04);
+  }
+  .hero-links a:hover {
+    background: rgba(0,230,159,0.1);
+    box-shadow: 0 0 16px rgba(0,230,159,0.2);
+  }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    margin: 48px 0;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bg-card);
+  }
+  .stat-item {
+    flex: 1;
+    text-align: center;
+    padding: 20px 10px;
+    border-right: 1px solid var(--border);
+    position: relative;
+  }
+  .stat-item:last-child { border-right: none; }
+  .stat-num {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--glow-green);
+    text-shadow: 0 0 20px rgba(0,230,159,0.5);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── SECTION ── */
+  section { margin-bottom: 64px; }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--glow-green);
+    text-shadow: 0 0 10px rgba(0,230,159,0.4);
+    text-transform: uppercase;
+  }
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(0,230,159,0.3) 0%, transparent 100%);
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 22px;
+    position: relative;
+    transition: border-color 0.25s, box-shadow 0.25s;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 10px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    background: radial-gradient(ellipse at top left, rgba(0,230,159,0.05) 0%, transparent 60%);
+  }
+  .card:hover { border-color: var(--border-bright); box-shadow: 0 0 24px rgba(0,230,159,0.08); }
+  .card:hover::before { opacity: 1; }
+
+  /* ── TIMELINE ── */
+  .timeline { display: flex; flex-direction: column; gap: 16px; }
+  .tl-item {
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    gap: 0 16px;
+  }
+  .tl-dot-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .tl-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--glow-green);
+    box-shadow: 0 0 8px var(--glow-green), 0 0 20px rgba(0,230,159,0.4);
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+  .tl-dot.teal { background: var(--glow-teal); box-shadow: 0 0 8px var(--glow-teal); }
+  .tl-dot.cyan { background: var(--glow-cyan); box-shadow: 0 0 8px var(--glow-cyan); }
+  .tl-dot.purple { background: var(--glow-purple); box-shadow: 0 0 8px var(--glow-purple); }
+  .tl-line {
+    flex: 1;
+    width: 1px;
+    background: linear-gradient(180deg, rgba(0,230,159,0.3) 0%, rgba(0,230,159,0.05) 100%);
+    margin-top: 4px;
+  }
+  .tl-content { padding-bottom: 8px; }
+  .tl-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+  .tl-org {
+    font-weight: 700;
+    font-size: 14.5px;
+    color: #fff;
+  }
+  .tl-role {
+    font-size: 12px;
+    color: var(--glow-green);
+    margin-left: 8px;
+  }
+  .tl-date {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    font-family: monospace;
+  }
+  .tl-desc {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.75;
+  }
+  .tl-desc > p {
+    font-size: 11.5px;
+    color: #6abf8a;
+    margin-bottom: 5px;
+    line-height: 1.4;
+  }
+  .tl-desc ul { padding-left: 16px; }
+  .tl-desc li { margin-bottom: 4px; }
+  .tl-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 10.5px;
+    border-radius: 10px;
+    margin: 4px 3px 0 0;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+  .tl-tag.green { background: rgba(0,230,159,0.12); color: var(--glow-green); border-color: rgba(0,230,159,0.25); }
+  .tl-tag.teal { border-color: rgba(0,201,212,0.3); color: var(--glow-teal); }
+  .tl-tag.cyan { border-color: rgba(0,170,255,0.3); color: var(--glow-cyan); }
+
+  /* ── SKILL GRID ── */
+  .skill-grid { display: flex; flex-direction: column; gap: 14px; }
+  .skill-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .skill-label {
+    width: 130px;
+    font-size: 12px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+  .skill-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .pill {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11.5px;
+    border: 1px solid var(--border);
+    color: var(--text);
+    transition: all 0.2s;
+    cursor: default;
+  }
+  .pill:hover {
+    border-color: var(--glow-green);
+    color: var(--glow-green);
+    box-shadow: 0 0 8px rgba(0,230,159,0.15);
+  }
+  .pill.accent { border-color: rgba(0,230,159,0.3); color: var(--glow-green); }
+  .pill.teal { border-color: rgba(0,201,212,0.3); color: var(--glow-teal); }
+  .pill.cyan { border-color: rgba(0,170,255,0.3); color: var(--glow-cyan); }
+
+  /* ── PROJECT CARDS GRID ── */
+  .proj-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 640px) { .proj-grid { grid-template-columns: 1fr; } }
+  .proj-card {
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.25s, transform 0.2s, box-shadow 0.25s;
+  }
+  .proj-card:hover {
+    border-color: var(--border-bright);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 28px rgba(0,230,159,0.08);
+  }
+  .proj-card .glow-orb {
+    position: absolute;
+    top: -20px; right: -20px;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    opacity: 0.12;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  .proj-card:hover .glow-orb { opacity: 0.25; }
+  .proj-name {
+    font-weight: 700;
+    font-size: 13.5px;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .proj-date {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    font-family: monospace;
+  }
+  .proj-desc {
+    font-size: 12.5px;
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  /* ── PAPERS TABLE ── */
+  .papers-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+  .papers-table th {
+    text-align: left;
+    padding: 8px 10px;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+  }
+  .papers-table td {
+    padding: 10px 10px;
+    border-bottom: 1px solid rgba(0,230,159,0.04);
+    vertical-align: top;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .papers-table tr:hover td { background: rgba(0,230,159,0.025); }
+  .venue-badge {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+  }
+  .venue-top { background: rgba(0,230,159,0.12); color: var(--glow-green); border: 1px solid rgba(0,230,159,0.25); }
+  .venue-sci { background: rgba(0,201,212,0.1); color: var(--glow-teal); border: 1px solid rgba(0,201,212,0.2); }
+  .role-first {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: rgba(155,89,245,0.12);
+    color: var(--glow-purple);
+    border: 1px solid rgba(155,89,245,0.2);
+    white-space: nowrap;
+  }
+
+  /* ── EDU ── */
+  .edu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 640px) { .edu-grid { grid-template-columns: 1fr; } }
+  .edu-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .edu-school { font-size: 15px; font-weight: 700; color: #fff; }
+  .edu-degree { font-size: 12px; color: var(--glow-teal); margin: 4px 0; }
+  .edu-detail { font-size: 12px; color: var(--text-muted); line-height: 1.7; }
+
+  /* ── PATENTS ── */
+  .patent-list { display: flex; flex-direction: column; gap: 8px; }
+  .patent-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12.5px;
+  }
+  .patent-num { color: var(--glow-teal); font-family: monospace; font-size: 11px; flex-shrink: 0; padding-top: 2px; }
+  .patent-title { color: var(--text); }
+  .patent-org { color: var(--text-muted); font-size: 11px; margin-top: 2px; }
+
+  /* ── GLOW ANIMATIONS ── */
+  @keyframes glow-pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+  .glow-text-green {
+    color: var(--glow-green);
+    text-shadow: 0 0 8px rgba(0,230,159,0.5);
+    animation: glow-pulse 3s ease-in-out infinite;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 32px;
+    color: var(--text-dim);
+    font-size: 11.5px;
+    letter-spacing: 1px;
+    border-top: 1px solid var(--border);
+    position: relative;
+  }
+  footer .spore-line {
+    font-size: 18px;
+    margin-bottom: 8px;
+    opacity: 0.4;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: rgba(0,230,159,0.2); border-radius: 4px; }
+
+/* ── MUSHROOM CARD INTERACTION ── */
+.shroom-card {
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+}
+.shroom-card:hover { transform: translateY(-3px); }
+.shroom-card:active { transform: scale(0.93); }
+.shroom-card.pressing { transform: scale(0.93); }
+
+@keyframes shroom-pop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(0.91); }
+  70%  { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+.shroom-card.pop-anim { animation: shroom-pop 0.28s ease; }
+
+/* ── SPEECH BUBBLE ── */
+.quote-bubble {
+  position: absolute;
+  z-index: 9999;
+  width: 176px;
+  padding: 10px 13px 9px;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.65;
+  color: #ccc;
+  background: rgba(10,15,26,0.97);
+  border: 1px solid;
+  display: none;
+  pointer-events: auto;
+}
+.quote-bubble::after {
+  content: '';
+  position: absolute;
+  top: 20px;
+  border: 7px solid transparent;
+}
+.quote-bubble.tail-right::after {
+  right: -14px;
+  border-left: 7px solid rgba(10,15,26,0.97);
+}
+.quote-bubble.tail-left::after {
+  left: -14px;
+  border-right: 7px solid rgba(10,15,26,0.97);
+}
+@keyframes bubble-from-right {
+  from { opacity:0; transform: translateX(-10px) scale(0.9); }
+  to   { opacity:1; transform: translateX(0)      scale(1);  }
+}
+@keyframes bubble-from-left {
+  from { opacity:0; transform: translateX(10px)  scale(0.9); }
+  to   { opacity:1; transform: translateX(0)     scale(1);   }
+}
+.quote-bubble.tail-right { animation: bubble-from-right 0.2s cubic-bezier(.34,1.4,.64,1) forwards; }
+.quote-bubble.tail-left  { animation: bubble-from-left  0.2s cubic-bezier(.34,1.4,.64,1) forwards; }
+</style>
+</head>
+<body>
+
+<canvas id="spore-canvas"></canvas>
+<div class="mycelia-bg"></div>
+
+<!-- NAV -->
+<nav>
+  <span class="nav-brand">🍄 范璐</span>
+  <div class="nav-links">
+    <a href="#about">关于</a>
+    <a href="#skills">技能</a>
+    <a href="#experience">经历</a>
+    <a href="#projects">项目</a>
+    <a href="#papers">论文</a>
+    <a href="#education">教育</a>
+  </div>
+</nav>
+
+<div class="page-wrap">
+
+<!-- HERO -->
+<section class="hero" id="about">
+  <div class="hero-ring"></div>
+  <div class="hero-ring"></div>
+  <div class="hero-ring"></div>
+  <h1 class="hero-name">范&nbsp;璐</h1>
+  <div class="hero-en">Fan Lu</div>
+  <div class="hero-title">
+    <span>搜索推荐 × 图挖掘 × 大语言模型</span>&nbsp;|&nbsp;香港理工大学 博士
+  </div>
+  <div class="hero-links">
+    <a href="mailto:complu.fan@connect.polyu.hk">✉ complu.fan@connect.polyu.hk</a>
+    <a href="https://github.com/floatsdsds" target="_blank">⬡ github.com/floatsdsds</a>
+    <span style="display:inline-flex; align-items:center; gap:6px; padding:5px 14px; border:1px solid var(--border-bright); border-radius:20px; color:var(--glow-green); font-size:11.5px; letter-spacing:0.5px; background:rgba(0,230,159,0.04);">📱 18529531423</span>
+  </div>
+</section>
+
+<!-- INTRO + SKILLS (compact single viewport) -->
+<div style="display:grid; grid-template-columns:1fr 1.8fr; gap:12px; margin:12px 0 24px;">
+
+  <!-- Left: quote + stats -->
+  <div style="display:flex; flex-direction:column; gap:16px;">
+    <div class="card" style="padding:14px 16px; flex:1;">
+      <p style="font-size:13px; color:#c2d8cc; line-height:1.75; border-left:2px solid var(--glow-green); padding-left:12px; margin:0;">
+        NLP/搜推方向博士，擅长序列建模和图建模，最近追赶 harness engineering 发展追赶的很上头，正在踩着各种坑养自己的小蘑菇，包括面向场景的边界优化和工具集调试，优化知识库和结构化记忆的构建维护等，我将自己经常用到的需求都沉淀整合进了蘑菇汤的统一框架中。
+      </p>
+      <p style="font-size:13px; color:#b8cfd6; line-height:1.75; border-left:2px solid rgba(0,201,212,0.6); padding-left:12px; margin:10px 0 0;">
+        广泛涉猎各种游戏（休闲小游戏、独立单机、重度策略、MMORPG、派对游戏、桌游等），重度跑团玩家/主持，自己策划主持过多个多人 PvPvE 模组，AI + 交互式叙事 YesYes！！
+      </p>
+    </div>
+    <div class="card" style="padding:10px 14px;">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+        <div style="text-align:center;">
+          <div style="font-size:20px; font-weight:800; color:var(--glow-green); text-shadow:0 0 16px rgba(0,230,159,0.5);">20+</div>
+          <div style="font-size:10px; color:var(--text-muted); margin-top:3px;">顶会论文</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:20px; font-weight:800; color:var(--glow-green); text-shadow:0 0 16px rgba(0,230,159,0.5);">7</div>
+          <div style="font-size:10px; color:var(--text-muted); margin-top:3px;">一作/共同一作</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:20px; font-weight:800; color:var(--glow-teal); text-shadow:0 0 16px rgba(0,201,212,0.5);">800+</div>
+          <div style="font-size:10px; color:var(--text-muted); margin-top:3px;">总引用</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:20px; font-weight:800; color:var(--glow-teal); text-shadow:0 0 16px rgba(0,201,212,0.5);">3</div>
+          <div style="font-size:10px; color:var(--text-muted); margin-top:3px;">发明专利</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: skills + papers -->
+  <div style="display:flex; flex-direction:column; gap:12px;">
+
+    <div class="card" style="padding:14px 18px;">
+      <div style="font-size:10px; font-weight:700; letter-spacing:2.5px; color:var(--glow-green); text-transform:uppercase; margin-bottom:10px;">技术技能</div>
+      <div style="display:flex; flex-direction:column; gap:7px;">
+
+        <div style="display:flex; align-items:center; gap:10px; padding:7px 10px; border-radius:7px; background:rgba(155,89,245,0.07); border:1px solid rgba(155,89,245,0.25);">
+          <span style="width:80px; font-size:11.5px; font-weight:700; color:#b07ef5; flex-shrink:0;"> 大语言模型 </span>
+          <div style="display:flex; flex-wrap:wrap; gap:5px;">
+            <span style="padding:3px 9px; border-radius:10px; font-size:11px; background:rgba(155,89,245,0.15); color:#c09fff; border:1px solid rgba(155,89,245,0.4);">RAG</span>
+            <span style="padding:3px 9px; border-radius:10px; font-size:11px; background:rgba(155,89,245,0.15); color:#c09fff; border:1px solid rgba(155,89,245,0.4);">SFT</span>
+            <span style="padding:3px 9px; border-radius:10px; font-size:11px; background:rgba(155,89,245,0.15); color:#c09fff; border:1px solid rgba(155,89,245,0.4);">Agent 开发</span>
+            <span style="padding:3px 9px; border-radius:10px; font-size:11px; background:rgba(155,89,245,0.15); color:#c09fff; border:1px solid rgba(155,89,245,0.4);">Harness 工程</span>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="width:80px; font-size:11.5px; color:var(--text-muted); flex-shrink:0;">NLP</span>
+          <div style="display:flex; flex-wrap:wrap; gap:5px;">
+            <span class="pill teal">意图识别</span>
+            <span class="pill teal">小样本学习</span>
+            <span class="pill teal">模型蒸馏</span>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="width:80px; font-size:11.5px; color:var(--text-muted); flex-shrink:0;">推荐系统</span>
+          <div style="display:flex; flex-wrap:wrap; gap:5px;">
+            <span class="pill accent">难负例挖掘</span>
+            <span class="pill accent">长序列压缩</span>
+            <span class="pill accent">增量学习</span>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="width:80px; font-size:11.5px; color:var(--text-muted); flex-shrink:0;">复杂网络</span>
+          <div style="display:flex; flex-wrap:wrap; gap:5px;">
+            <span class="pill cyan">知识图谱</span>
+            <span class="pill cyan">图神经网络</span>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="width:80px; font-size:11.5px; color:var(--text-muted); flex-shrink:0;">Coding</span>
+          <div style="display:flex; flex-wrap:wrap; gap:5px;">
+            <span class="pill">Python</span>
+            <span class="pill">C++</span>
+            <span class="pill">PyTorch</span>
+            <span class="pill">LangChain</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Papers compact -->
+    <div class="card" id="papers" style="padding:14px 18px;">
+      <div style="font-size:10px; font-weight:700; letter-spacing:2.5px; color:var(--glow-green); text-transform:uppercase; margin-bottom:10px;">论文发表</div>
+      <div style="display:flex; flex-direction:column; gap:0;">
+
+        <div style="display:flex; align-items:baseline; gap:8px; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+          <span class="venue-badge venue-top" style="flex-shrink:0;">SIGIR</span>
+          <span style="font-size:10px; color:#666; flex-shrink:0;">2026</span>
+          <span style="font-size:11px; color:var(--text); flex:1; line-height:1.4;">CAUSE: Generative Rec. Sequence Compression</span>
+          <span class="role-first" style="flex-shrink:0; font-size:10px;">共一</span>
+        </div>
+
+        <div style="display:flex; align-items:baseline; gap:8px; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+          <span class="venue-badge venue-top" style="flex-shrink:0;">WWW</span>
+          <span style="font-size:10px; color:#666; flex-shrink:0;">2025</span>
+          <span style="font-size:11px; color:var(--text); flex:1; line-height:1.4;">Legommenders: Content-Based Rec. Library</span>
+          <span style="font-size:10px; color:var(--text-dim); flex-shrink:0;">合作</span>
+        </div>
+
+        <div style="display:flex; align-items:baseline; gap:8px; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+          <span class="venue-badge venue-top" style="flex-shrink:0;">LREC-COLING</span>
+          <span style="font-size:10px; color:#666; flex-shrink:0;">2024</span>
+          <span style="font-size:11px; color:var(--text); flex:1; line-height:1.4;">LANID: LLM-assisted New Intent Discovery</span>
+          <span class="role-first" style="flex-shrink:0; font-size:10px;">一作</span>
+        </div>
+
+        <div style="display:flex; align-items:baseline; gap:8px; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+          <span class="venue-badge venue-top" style="flex-shrink:0;">SIGIR</span>
+          <span style="font-size:10px; color:#666; flex-shrink:0;">2023</span>
+          <span style="font-size:11px; color:var(--text); flex:1; line-height:1.4;">GNNO: Neighborhood Hard Negative Mining</span>
+          <span class="role-first" style="flex-shrink:0; font-size:10px;">一作</span>
+        </div>
+
+        <div style="display:flex; align-items:baseline; gap:8px; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+          <span class="venue-badge venue-top" style="flex-shrink:0;">EMNLP</span>
+          <span style="font-size:10px; color:#666; flex-shrink:0;">2023</span>
+          <span style="font-size:11px; color:var(--text); flex:1; line-height:1.4;">ADOROR: Optimal Subgraph Prompt Selection</span>
+          <span style="font-size:10px; color:var(--text-dim); flex-shrink:0;">合作</span>
+        </div>
+
+        <div style="display:flex; align-items:baseline; gap:8px; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+          <span class="venue-badge venue-top" style="flex-shrink:0;">TheWebConf</span>
+          <span style="font-size:10px; color:#666; flex-shrink:0;">2022</span>
+          <span style="font-size:11px; color:var(--text); flex:1; line-height:1.4;">Graph Conv. for Personalized Product Search</span>
+          <span class="role-first" style="flex-shrink:0; font-size:10px;">一作</span>
+        </div>
+
+        <div style="display:flex; align-items:baseline; gap:8px; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+          <span class="venue-badge venue-sci" style="flex-shrink:0;">Pattern Recog.</span>
+          <span style="font-size:10px; color:#666; flex-shrink:0;">2022</span>
+          <span style="font-size:11px; color:var(--text); flex:1; line-height:1.4;">Knowledge-aware Rec. with Attentive GCN</span>
+          <span style="font-size:10px; color:var(--text-dim); flex-shrink:0;">合作</span>
+        </div>
+
+        <div style="display:flex; align-items:baseline; gap:8px; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+          <span class="venue-badge venue-top" style="flex-shrink:0;">ACL</span>
+          <span style="font-size:10px; color:#666; flex-shrink:0;">2020</span>
+          <span style="font-size:11px; color:var(--text); flex:1; line-height:1.4;">GMM Unknown Intent Detection (Zero-shot)</span>
+          <span class="role-first" style="flex-shrink:0; font-size:10px;">一作</span>
+        </div>
+
+        <div style="display:flex; align-items:baseline; gap:8px; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+          <span class="venue-badge venue-top" style="flex-shrink:0;">EMNLP</span>
+          <span style="font-size:10px; color:#666; flex-shrink:0;">2019</span>
+          <span style="font-size:11px; color:var(--text); flex:1; line-height:1.4;">Capsule Networks for Zero-shot Intent Cls.</span>
+          <span class="role-first" style="flex-shrink:0; font-size:10px;">共一</span>
+        </div>
+
+        <div style="display:flex; align-items:baseline; gap:8px; padding:5px 0;">
+          <span class="venue-badge venue-sci" style="flex-shrink:0;">TKDE</span>
+          <span style="font-size:10px; color:#666; flex-shrink:0;">2018</span>
+          <span style="font-size:11px; color:var(--text); flex:1; line-height:1.4;">Link Weight Prediction on Yelp Network</span>
+          <span style="font-size:10px; color:var(--text-dim); flex-shrink:0;">合作</span>
+        </div>
+
+      </div>
+      <p style="margin-top:10px; font-size:10.5px; color:var(--text-dim);">一作/共同一作 7 篇 · 顶会 20+ · 引用 800+</p>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- EXPERIENCE -->
+<section id="experience">
+  <div class="section-header">
+    <span class="section-title">实习经历</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="timeline">
+
+    <div class="tl-item">
+      <div class="tl-dot-col">
+        <div class="tl-dot teal"></div>
+      </div>
+      <div class="tl-content">
+        <div class="tl-header">
+          <div><span class="tl-org">网易伏羲实验室</span><span class="tl-role">算法研究员</span></div>
+          <span class="tl-date">2022.11 – 2024.03</span>
+        </div>
+        <div class="tl-desc">
+          <p>网易伏羲研究部-自然语言组，覆盖对话与推荐双线工作</p>
+          <ul>
+            <li>独立提出基于图的难负例选择模块（GNNO），构建物品转移图提升序列推荐精度，衍生 CN116561580A 专利</li>
+            <li>提出基于对比学习的大模型蒸馏新意图识别算法，以少量预算显著提升新意图识别在 benchmark 上的表现</li>
+            <li>参与 prompt 自适应优化，提出 prompt 组合图确保多样性，衍生 <strong>EMNLP 2023</strong></li>
+            <li>LLM 早期探索阶段通过 <strong>RAG + In-Context Learning</strong> 增强人设对话系统</li>
+          </ul>
+          <span class="tl-tag green">SIGIR 2023 一作</span>
+          <span class="tl-tag green">LREC-COLING 2024 一作</span>
+          <span class="tl-tag green">EMNLP 2023</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="section-header">
+    <span class="section-title">个人项目</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="proj-grid">
+
+    <div class="proj-card" style="grid-column: span 2">
+      <div class="glow-orb" style="background: radial-gradient(circle, #00e69f, transparent)"></div>
+      <div class="proj-name">🍄 蘑菇汤计划 (Mushroom Soup)</div>
+      <div class="proj-date">2026.02 – 至今</div>
+      <div class="proj-desc">
+        AI Agent 共享基建体系。构建了一系列共享基建、集群进化、面向场景的定制拟人化 agent（菌种），通过"审美"和"翻译"提供普通用户可上手的一站式解决方案。
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:14px;">
+        <div onclick="showQuote('uu',event)" class="shroom-card" style=" background:rgba(10,15,26,0.8); border:1px solid rgba(180,140,100,0.3); border-radius:8px; padding:12px 14px; transition:border-color 0.2s;">
+          <img src="char_uu.png" style="height:120px; width:auto; display:block; margin:0 0 8px 0;" />
+          <div style="font-weight:700; font-size:13px; color:#d4a96a; margin-bottom:4px;">🍄 优优菌（mushroom-uu）</div>
+          <div style="font-size:11.5px; color:var(--text); line-height:1.6;">智能简历助手。用户只需把相关资料放进目录，优优菌自动将散乱文件整理成结构化用户知识，进而支撑简历生成、润色、网申助手等应用。</div>
+        </div>
+        <div onclick="showQuote('ll',event)" class="shroom-card" style=" background:rgba(10,15,26,0.8); border:1px solid rgba(100,170,220,0.3); border-radius:8px; padding:12px 14px; transition:border-color 0.2s;">
+          <img src="char_ll.png" style="height:120px; width:auto; display:block; margin:0 0 8px 0;" />
+          <div style="font-weight:700; font-size:13px; color:#7ab8e0; margin-bottom:4px;">🔍 懒懒菌（mushroom-ee）</div>
+          <div style="font-size:11.5px; color:var(--text); line-height:1.6;">GitHub 检索助手。在拆解用户意图的基础上进行多轮检索，漏斗式、渐进式读取对比相关开源项目，拒绝重复造轮子。</div>
+        </div>
+        <div onclick="showQuote('kk',event)" class="shroom-card" style=" background:rgba(10,15,26,0.8); border:1px solid rgba(220,160,180,0.3); border-radius:8px; padding:12px 14px; transition:border-color 0.2s;">
+          <img src="char_kk.png" style="height:120px; width:auto; display:block; margin:0 0 8px 0;" />
+          <div style="font-weight:700; font-size:13px; color:#e8a0b8; margin-bottom:4px;">👀 看看菌（mushroom-seesee）</div>
+          <div style="font-size:11.5px; color:var(--text); line-height:1.6;">长尾竞品调研助手。配置多路平台信息检索，挖掘主体关键词及账号，设置定期追踪任务，避免遗漏长尾应用动态。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="proj-card">
+      <div class="glow-orb" style="background: radial-gradient(circle, #9b59f5, transparent)"></div>
+      <div class="proj-name">小说续写器</div>
+      <div class="proj-date">2026</div>
+      <div class="proj-desc">设计混合文风评估指标，基于 textGrad 技术实现能够自适应统一文风的小说续写工具。</div>
+    </div>
+
+    <div class="proj-card">
+      <div class="glow-orb" style="background: radial-gradient(circle, #00aaff, transparent)"></div>
+      <div class="proj-name">跑团工具箱</div>
+      <div class="proj-date">2023</div>
+      <div class="proj-desc">基于 LangChain 为跑团固桌实现的应用，包含卡面解析器、卡面问答器、资源生成器、即时计算器等带团辅助工具。</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- COLLAB -->
+<section id="collab">
+  <div class="section-header">
+    <span class="section-title">项目经历</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="timeline">
+
+    <div class="tl-item">
+      <div class="tl-dot-col">
+        <div class="tl-dot"></div>
+        <div class="tl-line"></div>
+      </div>
+      <div class="tl-content">
+        <div class="tl-header">
+          <div><span class="tl-org">华为 2012 实验室</span><span class="tl-role">算法研究员（合作项目）</span></div>
+          <span class="tl-date">2025.06 – 至今</span>
+        </div>
+        <div class="tl-desc">
+          <p>港理工与华为联合推荐系统研究，聚焦生成式推荐（GR）高效训练</p>
+          <ul>
+            <li>提出基于<strong>兴趣点迁移</strong>的中长序列压缩方法（CAUSE），Kuairand 数据集<strong>不损精度下训练速度提升 4 倍</strong>，精度最高提升 39.14%，计算成本最高降低 6 倍，成果被 <strong>SIGIR 2026</strong> 接收</li>
+            <li>主导<strong>增量学习</strong>在华为真实业务数据落地，有效缓解灾难性遗忘</li>
+          </ul>
+          <span class="tl-tag green">SIGIR 2026</span>
+          <span class="tl-tag green">生成式推荐</span>
+          <span class="tl-tag">增量学习</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot-col">
+        <div class="tl-dot cyan"></div>
+        <div class="tl-line"></div>
+      </div>
+      <div class="tl-content">
+        <div class="tl-header">
+          <div><span class="tl-org">阿里巴巴达摩院</span><span class="tl-role">算法研究员（Air2020 合作）</span></div>
+          <span class="tl-date">2020.07 – 2021.06</span>
+        </div>
+        <div class="tl-desc">
+          <p>港理工 XMLab 与阿里达摩院联合项目，探索图结构在搜广推中的应用</p>
+          <ul>
+            <li>独立提出<strong>多时间尺度连续性位图卷积算法</strong>用于淘宝产品搜索个性化推荐，多个 Amazon benchmark 取得 SOTA，发表 <strong>TheWebConf 2022 第一作者</strong></li>
+            <li>参与基于知识图谱的个性化推荐研究，合作发表 <strong>Pattern Recognition 2022</strong></li>
+          </ul>
+          <span class="tl-tag green">WWW 2022 一作</span>
+          <span class="tl-tag">知识图谱推荐</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot-col">
+        <div class="tl-dot purple"></div>
+        <div class="tl-line" style="opacity:0.3"></div>
+      </div>
+      <div class="tl-content">
+        <div class="tl-header">
+          <div><span class="tl-org">有光科技</span><span class="tl-role">算法研究员（ITF2019 合作）</span></div>
+          <span class="tl-date">2019.01 – 2021.12</span>
+        </div>
+        <div class="tl-desc">
+          <p>港理工 &amp; 有光科技联合申请港府基金（ITF），零/小样本对话意图分析</p>
+          <ul>
+            <li>独立发现当时 SOTA 方法的知识迁移瓶颈，实现泛化 zero-shot 意图识别，发表 <strong>EMNLP 2019 共同一作</strong></li>
+            <li>提出新意图识别设定，改进 zero-shot 系统并显著提升精度，发表 <strong>ACL 2020 第一作者</strong>，衍生专利 CN117114015A</li>
+          </ul>
+          <span class="tl-tag green">ACL 2020 一作</span>
+          <span class="tl-tag green">EMNLP 2019 一作</span>
+          <span class="tl-tag">零样本意图</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+
+<!-- EDUCATION -->
+<section id="education">
+  <div class="section-header">
+    <span class="section-title">教育背景</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="edu-grid">
+    <div class="edu-card">
+      <div class="edu-school">香港理工大学</div>
+      <div class="edu-degree">博士 · 数据科学及人工智能学系</div>
+      <div class="edu-detail">
+        2019.09 – 2026.06（六月拿证正式毕业）<br>
+        GPA：3.57<br>
+        导师：吴晓明教授（XMLab）<br>
+        研究方向：搜索推荐 × 图挖掘 × 大语言模型
+      </div>
+    </div>
+    <div class="edu-card">
+      <div class="edu-school">浙江工业大学</div>
+      <div class="edu-degree">工学学士 · 自动化专业</div>
+      <div class="edu-detail">
+        2013.09 – 2017.06<br>
+        GPA：3.54<br>
+        导师：宣琦教授<br>
+        研究方向：复杂网络
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PATENTS -->
+<section>
+  <div class="section-header">
+    <span class="section-title">发明专利</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="patent-list">
+    <div class="patent-item">
+      <div class="patent-num">CN202310560828</div>
+      <div>
+        <div class="patent-title">模型训练、伪负例的处理方法、装置、设备及存储介质</div>
+        <div class="patent-org">网易杭州 · 2023</div>
+      </div>
+    </div>
+    <div class="patent-item">
+      <div class="patent-num">CN202310803355</div>
+      <div>
+        <div class="patent-title">一种深入研究少样本分布外意图识别方法</div>
+        <div class="patent-org">有光科技 · 2023</div>
+      </div>
+    </div>
+    <div class="patent-item">
+      <div class="patent-num">HK30044154A2</div>
+      <div>
+        <div class="patent-title">一種處理文本信息的系統和方法</div>
+        <div class="patent-org">香港 · 2021</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /page-wrap -->
+
+<footer>
+  <div class="spore-line">· · · ✦ · · ·</div>
+  范璐 Fan Lu &nbsp;·&nbsp; complu.fan@connect.polyu.hk &nbsp;·&nbsp; github.com/floatsdsds
+  <div style="margin-top:10px; font-size:10.5px; color: var(--text-dim); letter-spacing:0.5px;">
+    本页面由 <span style="color: #d4a96a;">优优菌</span> 生成 &nbsp;·&nbsp; 蘑菇汤计划 Mushroom Soup
+  </div>
+</footer>
+
+<script>
+// ── SPORE PARTICLE SYSTEM ──
+const canvas = document.getElementById('spore-canvas');
+const ctx = canvas.getContext('2d');
+
+let W, H, spores = [];
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+
+const COLORS = [
+  'rgba(0,230,159,',
+  'rgba(0,201,212,',
+  'rgba(0,170,255,',
+  'rgba(155,89,245,',
+  'rgba(0,255,200,',
+];
+
+class Spore {
+  constructor() { this.reset(true); }
+  reset(init) {
+    this.x = Math.random() * W;
+    this.y = init ? Math.random() * H : H + 10;
+    this.r = 0.5 + Math.random() * 2.2;
+    this.vx = (Math.random() - 0.5) * 0.3;
+    this.vy = -(0.15 + Math.random() * 0.5);
+    this.alpha = 0.1 + Math.random() * 0.7;
+    this.decay = 0.0005 + Math.random() * 0.001;
+    this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+    this.pulse = Math.random() * Math.PI * 2;
+    this.pulseSpeed = 0.02 + Math.random() * 0.03;
+  }
+  update() {
+    this.x += this.vx + Math.sin(this.pulse) * 0.2;
+    this.y += this.vy;
+    this.pulse += this.pulseSpeed;
+    this.alpha -= this.decay;
+    if (this.alpha <= 0 || this.y < -10) this.reset(false);
+  }
+  draw() {
+    const a = Math.max(0, this.alpha * (0.7 + 0.3 * Math.sin(this.pulse)));
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+    ctx.fillStyle = this.color + a + ')';
+    ctx.fill();
+    // glow
+    const grd = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.r * 4);
+    grd.addColorStop(0, this.color + (a * 0.4) + ')');
+    grd.addColorStop(1, this.color + '0)');
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r * 4, 0, Math.PI * 2);
+    ctx.fillStyle = grd;
+    ctx.fill();
+  }
+}
+
+function initSpores() {
+  spores = Array.from({ length: 120 }, () => new Spore());
+}
+
+function animate() {
+  ctx.clearRect(0, 0, W, H);
+  for (const s of spores) { s.update(); s.draw(); }
+  requestAnimationFrame(animate);
+}
+
+window.addEventListener('resize', () => { resize(); });
+resize();
+initSpores();
+animate();
+
+// ── SCROLL-TRIGGERED GLOW ──
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.style.opacity = '1';
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.card, .edu-card, .proj-card, .tl-content').forEach(el => {
+  el.style.opacity = '0';
+  el.style.transition = 'opacity 0.6s ease';
+  observer.observe(el);
+});
+</script>
+
+<!-- ── SPEECH BUBBLE ── -->
+<div id="quote-bubble" class="quote-bubble">
+  <div class="qb-name" style="font-size:11.5px; font-weight:700; margin-bottom:6px; letter-spacing:0.3px;"></div>
+  <div class="qb-text" style="font-style:italic;"></div>
+</div>
+
+<script>
+// ── MUSHROOM QUOTES ──
+// 修改台词：编辑下方各菌种 lines 数组里的字符串即可
+const QUOTES = {
+  uu: {
+    name: '🍄 优优菌', color: '#d4a96a',
+    border: 'rgba(212,169,106,0.7)', glow: '0 0 20px rgba(212,169,106,0.3)',
+    lines: [
+      '材料散一点没关系，我整理这个比你收拾桌面快多了。',
+      '这段话面试官不会往下看——太平了，改。',
+      'JD 写得云里雾里，但我知道背后的面试官想要什么。',
+      '给我数字。"负责若干项目"这种话，ATS 和人都要跳过。',
+      '咖啡第二杯了，正好，把你的材料发过来吧。',
+      '好简历不是写出来的，是从你做过的事里挖出来的。',
+    ]
+  },
+  ll: {
+    name: '🔍 懒懒菌', color: '#7ab8e0',
+    border: 'rgba(122,184,224,0.6)', glow: '0 0 20px rgba(122,184,224,0.25)',
+    lines: [
+      '你说的这个，GitHub 上已经有三个实现了，要我帮你比一比吗？',
+      'Star 数会骗人，issue 区才说实话。',
+      '先把需求说清楚再搜。乱搜一通不如不搜。',
+      '这个库上次 commit 在两年前——死项目，下一个。',
+      '能复用就复用，这不是偷懒，这叫工程判断。',
+    ]
+  },
+  kk: {
+    name: '👀 看看菌', color: '#e8a0b8',
+    border: 'rgba(232,160,184,0.6)', glow: '0 0 20px rgba(232,160,184,0.25)',
+    lines: [
+      '嘻嘻……小~可~爱~~找到你咯——',
+      '怎么还没更新？这都足足一整天了！',
+      '哦呀……还可以这么找……',
+      '主流搜不到可不代表没有……这些小家伙，很有活力呢。',
+    ]
+  }
+};
+
+let _bubbleTimer = null;
+
+function showQuote(id, event) {
+  const q = QUOTES[id];
+  const card = event.currentTarget;
+  const img  = card.querySelector('img');
+  const rect = img.getBoundingClientRect();
+
+  // pop the card
+  card.classList.remove('pop-anim');
+  void card.offsetWidth;
+  card.classList.add('pop-anim');
+  setTimeout(() => card.classList.remove('pop-anim'), 300);
+
+  // fill bubble
+  const bubble = document.getElementById('quote-bubble');
+  bubble.querySelector('.qb-name').textContent = q.name;
+  bubble.querySelector('.qb-name').style.color = q.color;
+  bubble.querySelector('.qb-text').textContent = '\u201c' + q.lines[Math.floor(Math.random()*q.lines.length)] + '\u201d';
+  bubble.style.borderColor = q.border;
+  bubble.style.boxShadow   = q.glow;
+
+  // pick side — bubble hugs the img edge (GAP=3px), capped so it
+  // doesn't stray more than 24px beyond the card's own boundary
+  const BW = 158, GAP = 7;
+  const cardRect = card.getBoundingClientRect();
+  // always right of the image
+  const left = rect.right + GAP;
+  const tailClass = 'tail-left';
+
+  // vertical: upper quarter of image
+  let top = rect.top + rect.height * 0.18;
+  top = Math.max(8, Math.min(top, window.innerHeight - 120));
+
+  bubble.className = 'quote-bubble ' + tailClass;
+  bubble.style.left = (left + window.scrollX) + 'px';
+  bubble.style.top  = (top  + window.scrollY) + 'px';
+  bubble.style.display = 'block';
+
+  if (_bubbleTimer) clearTimeout(_bubbleTimer);
+  _bubbleTimer = setTimeout(dismissBubble, 4000);
+}
+
+function dismissBubble() {
+  document.getElementById('quote-bubble').style.display = 'none';
+  if (_bubbleTimer) clearTimeout(_bubbleTimer);
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.shroom-card') && !e.target.closest('#quote-bubble')) {
+    dismissBubble();
+  }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') dismissBubble(); });
+</script>
+
+</body>
+</html>

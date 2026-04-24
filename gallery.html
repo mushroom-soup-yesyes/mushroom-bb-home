@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>菌做梦</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    /* 画廊页无 hero 背景图，纯深黑 */
+    body { background: #020408; }
+
+    .gallery-header {
+      padding: 120px 0 3rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .gallery-header::before {
+      content:'';
+      position:absolute; inset:0;
+      background: radial-gradient(ellipse 60% 50% at 50% 100%,
+        rgba(0,229,204,0.06) 0%, transparent 70%
+      );
+      pointer-events:none;
+    }
+    .gallery-title {
+      font-family:'Cinzel Decorative',serif;
+      font-size:clamp(2rem,5vw,3.5rem);
+      color:var(--text-bright);
+      letter-spacing:0.12em;
+      margin-bottom:0.4rem;
+      text-shadow:0 0 40px rgba(0,229,204,0.3);
+    }
+    .gallery-sub {
+      font-family:'Cormorant Garamond',serif;
+      font-size:1.1rem;
+      color:var(--teal);
+      letter-spacing:0.2em;
+      font-style:italic;
+      opacity:0.75;
+    }
+
+    /* 分类过滤器 */
+    .filter-bar {
+      display:flex;
+      justify-content:center;
+      flex-wrap:wrap;
+      gap:0.6rem;
+      margin: 2rem 0 3rem;
+    }
+    .filter-btn {
+      font-family:'Noto Serif SC',serif;
+      font-size:0.82rem;
+      padding:0.45rem 1.3rem;
+      border-radius:999px;
+      cursor:pointer;
+      border:1px solid rgba(255,255,255,0.08);
+      background:rgba(255,255,255,0.03);
+      color:var(--text-dim);
+      letter-spacing:0.1em;
+      transition:all 0.28s;
+    }
+    .filter-btn:hover {
+      border-color:var(--teal-dim);
+      color:var(--text-main);
+    }
+    .filter-btn.active {
+      border-color:var(--teal);
+      color:var(--teal);
+      background:rgba(0,229,204,0.08);
+      box-shadow:0 0 16px rgba(0,229,204,0.15);
+    }
+    .filter-btn[data-cat="spider"].active {
+      border-color:#d44f8e;
+      color:#d44f8e;
+      background:rgba(212,79,142,0.08);
+      box-shadow:0 0 16px rgba(212,79,142,0.15);
+    }
+    .filter-btn[data-cat="mushroom"].active {
+      border-color:#4ae86a;
+      color:#4ae86a;
+      background:rgba(74,232,106,0.07);
+      box-shadow:0 0 16px rgba(74,232,106,0.12);
+    }
+    .filter-btn[data-cat="myth"].active {
+      border-color:var(--gold);
+      color:var(--gold);
+      background:rgba(200,168,75,0.08);
+      box-shadow:0 0 16px rgba(200,168,75,0.15);
+    }
+
+    /* 瀑布流网格 */
+    .masonry {
+      columns: 4;
+      column-gap: 12px;
+      padding: 0 1.5rem 4rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    @media(max-width:1100px){ .masonry{columns:3;} }
+    @media(max-width:720px) { .masonry{columns:2;} }
+    @media(max-width:420px) { .masonry{columns:1;} }
+
+    .gallery-item {
+      break-inside: avoid;
+      margin-bottom: 12px;
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.04);
+      transition: opacity 0.4s, transform 0.4s;
+    }
+    .gallery-item img {
+      width:100%;
+      display:block;
+      transition:transform 0.45s;
+    }
+    .gallery-item:hover img { transform:scale(1.04); }
+    .gallery-item-overlay {
+      position:absolute; inset:0;
+      background:linear-gradient(to top,
+        rgba(2,4,8,0.85) 0%, transparent 55%
+      );
+      opacity:0;
+      transition:opacity 0.35s;
+      display:flex;
+      align-items:flex-end;
+      padding:1rem;
+    }
+    .gallery-item:hover .gallery-item-overlay { opacity:1; }
+    .gallery-item-label {
+      font-family:'Noto Serif SC',serif;
+      font-size:0.8rem;
+      color:var(--text-bright);
+      letter-spacing:0.1em;
+    }
+    .gallery-item.hidden {
+      display:none;
+    }
+
+    /* 分类色标 */
+    .gallery-item::after {
+      content:attr(data-cat-label);
+      position:absolute; top:8px; right:8px;
+      font-size:0.65rem;
+      letter-spacing:0.08em;
+      padding:0.15rem 0.5rem;
+      border-radius:999px;
+      opacity:0;
+      transition:opacity 0.3s;
+    }
+    .gallery-item:hover::after { opacity:1; }
+    .gallery-item[data-cat="spider"]::after {
+      background:rgba(212,79,142,0.7);color:#fff;
+    }
+    .gallery-item[data-cat="mushroom"]::after {
+      background:rgba(74,232,106,0.65);color:#fff;
+    }
+    .gallery-item[data-cat="myth"]::after {
+      background:rgba(200,168,75,0.7);color:#fff;
+    }
+    .gallery-item[data-cat="fragment"]::after {
+      background:rgba(0,229,204,0.65);color:#fff;
+    }
+
+    /* Lightbox */
+    .lightbox {
+      display:none;
+      position:fixed; inset:0; z-index:2000;
+      background:rgba(2,4,8,0.96);
+      backdrop-filter:blur(12px);
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+    }
+    .lightbox.open { display:flex; }
+    .lightbox-img-wrap {
+      position:relative;
+      max-width:90vw; max-height:85vh;
+    }
+    .lightbox-img-wrap img {
+      max-width:90vw; max-height:85vh;
+      object-fit:contain;
+      border-radius:8px;
+      box-shadow:0 0 80px rgba(0,0,0,0.8);
+      border:1px solid rgba(0,229,204,0.12);
+    }
+    .lightbox-label {
+      margin-top:1.2rem;
+      font-family:'Noto Serif SC',serif;
+      font-size:0.9rem;
+      color:var(--text-main);
+      letter-spacing:0.15em;
+    }
+    .lightbox-close {
+      position:fixed; top:1.5rem; right:2rem;
+      font-size:2rem; color:var(--text-dim);
+      cursor:pointer; line-height:1;
+      transition:color 0.2s;
+    }
+    .lightbox-close:hover { color:var(--teal); }
+    .lightbox-nav {
+      position:fixed;
+      top:50%; transform:translateY(-50%);
+      font-size:2.5rem; color:var(--text-dim);
+      cursor:pointer; line-height:1;
+      transition:color 0.2s;
+      user-select:none;
+    }
+    .lightbox-nav:hover { color:var(--teal); }
+    .lightbox-nav.prev { left:1.5rem; }
+    .lightbox-nav.next { right:1.5rem; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">✦ 白白菌 ✦</a>
+  <ul class="nav-links">
+    <li><a href="index.html">菌问好</a></li>
+    <li><a href="projects.html">菌在忙</a></li>
+    <li><a href="games.html">菌在玩</a></li>
+    <li><a href="gallery.html" class="active">菌做梦</a></li>
+  </ul>
+</nav>
+
+<!-- 画廊头部 -->
+<div class="gallery-header">
+  <div class="gallery-title">画廊</div>
+  <div class="gallery-sub">Gallery · 审美存档</div>
+
+  <!-- 过滤器 -->
+  <div class="filter-bar">
+    <button class="filter-btn active" data-cat="all">全部</button>
+    <button class="filter-btn" data-cat="spider">🕷 蛛丝织梦</button>
+    <button class="filter-btn" data-cat="mushroom">🍄 菌林幻境</button>
+    <button class="filter-btn" data-cat="myth">✦ 神话秘典</button>
+    <button class="filter-btn" data-cat="fragment">◈ 碎片集</button>
+  </div>
+</div>
+
+<!-- 瀑布流画廊 -->
+<div class="masonry" id="masonry">
+  <!-- 蛛丝织梦 -->
+  <div class="gallery-item" data-cat="spider" data-label="罂粟与蛛网" data-cat-label="蛛丝织梦">
+    <img src="assets/gallery/0b5f54a6-4254-46db-b07e-7d649d768b2e_Poppies_bloom_over_spider_webs._silver_spider_silk_over_black_dress._--niji_6_--_0.jpg" alt="罂粟与蛛网" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">罂粟与蛛网</span></div>
+  </div>
+  <div class="gallery-item" data-cat="spider" data-label="蛛丝女王" data-cat-label="蛛丝织梦">
+    <img src="assets/gallery/f3172c4c-db19-477b-9a7e-2bf6add3d2f9_Art_nouveau_illustration_of_tarot,_black_spider_queen_controling_silks._at_the_e_3.jpg" alt="蛛丝女王" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">蛛丝女王</span></div>
+  </div>
+  <div class="gallery-item" data-cat="spider" data-label="蛛女塔罗" data-cat-label="蛛丝织梦">
+    <img src="assets/gallery/0f7f1c19-90a3-4e68-b213-e8d9ddb401a6_Art_nouveau_illustration_of_tarot,_half_black_spider_half_girl._--niji_6_--ar_91_1.jpg" alt="蛛女塔罗" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">蛛女塔罗</span></div>
+  </div>
+  <div class="gallery-item" data-cat="spider" data-label="蛛丝罂粟" data-cat-label="蛛丝织梦">
+    <img src="assets/gallery/1f9cd2e1-96f4-41a1-ae72-075b07af73d3_Art_nouveau_illustration_of_tarot,_Above_the_spider_silk,_poppies_bloom,_with_th_1.jpg" alt="蛛丝罂粟" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">蛛丝罂粟</span></div>
+  </div>
+  <div class="gallery-item" data-cat="spider" data-label="白丝黑蛛" data-cat-label="蛛丝织梦">
+    <img src="assets/gallery/4c131644-91e0-47ae-a065-1eb389889831_Art_nouveau_illustration_of_tarot,_poppys_on_white_spider_silk._elegant_black_sp_2.jpg" alt="白丝黑蛛" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">白丝黑蛛</span></div>
+  </div>
+  <div class="gallery-item" data-cat="spider" data-label="黑蛛女" data-cat-label="蛛丝织梦">
+    <img src="assets/gallery/0ed6f832-a26e-4ed1-9211-9933e92d55a0_httpss.mj.rundyjZpVlxnPQ_Art_nouveau_illustration_of_tarot,_black_spider_lady_pl_2.jpg" alt="黑蛛女" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">黑蛛女</span></div>
+  </div>
+  <div class="gallery-item" data-cat="spider" data-label="蛛女·甲" data-cat-label="蛛丝织梦">
+    <img src="assets/gallery/f4d53049-89f9-4468-a5b7-f435d4ffba5d_a_spider_lady._--niji_6_--ar_916_0.jpg" alt="蛛女·甲" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">蛛女·甲</span></div>
+  </div>
+  <div class="gallery-item" data-cat="spider" data-label="蛛女·丁" data-cat-label="蛛丝织梦">
+    <img src="assets/gallery/f4d53049-89f9-4468-a5b7-f435d4ffba5d_a_spider_lady._--niji_6_--ar_916_3.jpg" alt="蛛女·丁" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">蛛女·丁</span></div>
+  </div>
+  <div class="gallery-item" data-cat="spider" data-label="弄丝" data-cat-label="蛛丝织梦">
+    <img src="assets/gallery/fc94b9c2-a032-4daa-98fa-6ef6d63dc294_black_spider_lady_playing_her_silk._--niji_6_--ar_169_1.jpg" alt="弄丝" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">弄丝</span></div>
+  </div>
+  <div class="gallery-item" data-cat="spider" data-label="弄丝·变奏" data-cat-label="蛛丝织梦">
+    <img src="assets/gallery/fc94b9c2-a032-4daa-98fa-6ef6d63dc294_black_spider_lady_playing_her_silk._--niji_6_--ar_169_3.jpg" alt="弄丝·变奏" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">弄丝·变奏</span></div>
+  </div>
+
+  <!-- 菌林幻境 -->
+  <div class="gallery-item" data-cat="mushroom" data-label="菌海仙子" data-cat-label="菌林幻境">
+    <img src="assets/gallery/ff98a909-f9db-4a42-aa3a-23a3285cf2f2_beautiful_mushroom_girls_growing_from_sea_of_transparent_glowing_white_fungus._-_2.jpg" alt="菌海仙子" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">菌海仙子</span></div>
+  </div>
+  <div class="gallery-item" data-cat="mushroom" data-label="林中白菌" data-cat-label="菌林幻境">
+    <img src="assets/gallery/a244ca88-0c5e-40ef-9fec-ad9eddf85c57_Art_nouveau_illustration_of_tarot,_The_white_fungus_is_in_the_forest._--niji_6_-_2.jpg" alt="林中白菌" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">林中白菌</span></div>
+  </div>
+  <div class="gallery-item" data-cat="mushroom" data-label="懒蘑菇" data-cat-label="菌林幻境">
+    <img src="assets/gallery/4f89a5e5-df58-4e49-8d0c-a02424503fd4_watercolor_texture,_design_an_avatar,_A_lazy_mushroom_with_antlers._--niji_6_--s_1.jpg" alt="懒蘑菇" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">懒蘑菇</span></div>
+  </div>
+  <div class="gallery-item" data-cat="mushroom" data-label="白白菌" data-cat-label="菌林幻境">
+    <img src="assets/bg/lazy.png" alt="白白菌" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">白白菌</span></div>
+  </div>
+  <div class="gallery-item" data-cat="mushroom" data-label="菌林·一" data-cat-label="菌林幻境">
+    <img src="assets/bg/蘑菇背景1.png" alt="菌林·一" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">菌林·一</span></div>
+  </div>
+  <div class="gallery-item" data-cat="mushroom" data-label="菌雨" data-cat-label="菌林幻境">
+    <img src="assets/bg/蘑菇背景2.png" alt="菌雨" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">菌雨</span></div>
+  </div>
+  <div class="gallery-item" data-cat="mushroom" data-label="荧光蘑菇林" data-cat-label="菌林幻境">
+    <img src="assets/bg/蘑菇背景3.png" alt="荧光蘑菇林" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">荧光蘑菇林</span></div>
+  </div>
+  <div class="gallery-item" data-cat="mushroom" data-label="菌林·四" data-cat-label="菌林幻境">
+    <img src="assets/bg/蘑菇背景4.png" alt="菌林·四" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">菌林·四</span></div>
+  </div>
+  <div class="gallery-item" data-cat="mushroom" data-label="云端菌境" data-cat-label="菌林幻境">
+    <img src="assets/bg/蘑菇背景5.png" alt="云端菌境" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">云端菌境</span></div>
+  </div>
+
+  <!-- 神话秘典 -->
+  <div class="gallery-item" data-cat="myth" data-label="仙鹤·仙人" data-cat-label="神话秘典">
+    <img src="assets/gallery/0c31f260-de78-46b7-b9e2-99a006a8b2f0_a_divine_crane,_and_immortal_man._--niji_6_0.jpg" alt="仙鹤·仙人" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">仙鹤·仙人</span></div>
+  </div>
+  <div class="gallery-item" data-cat="myth" data-label="智慧金树·甲" data-cat-label="神话秘典">
+    <img src="assets/gallery/2f322aa7-83a9-44fe-b80b-27be10e79789_Art_nouveau_illustration_of_tarot_astrology,_Golden_Tree_of_wisdom._twinkle_star_1.jpg" alt="智慧金树·甲" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">智慧金树·甲</span></div>
+  </div>
+  <div class="gallery-item" data-cat="myth" data-label="智慧金树·乙" data-cat-label="神话秘典">
+    <img src="assets/gallery/2f322aa7-83a9-44fe-b80b-27be10e79789_Art_nouveau_illustration_of_tarot_astrology,_Golden_Tree_of_wisdom._twinkle_star_2.jpg" alt="智慧金树·乙" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">智慧金树·乙</span></div>
+  </div>
+  <div class="gallery-item" data-cat="myth" data-label="云雾隐鸟" data-cat-label="神话秘典">
+    <img src="assets/gallery/68022788-c702-45f9-b926-f9e99ad61327_Art_nouveau_illustration_of_tarot,_the_hidden_bird_formed_by_clouds_and_mist._--_2.jpg" alt="云雾隐鸟" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">云雾隐鸟</span></div>
+  </div>
+  <div class="gallery-item" data-cat="myth" data-label="神鹤与人" data-cat-label="神话秘典">
+    <img src="assets/gallery/69309135-6906-492a-8549-e0280562220b_Tarot,_divine_crane,_man._--ar_916_--v_6.0_2.jpg" alt="神鹤与人" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">神鹤与人</span></div>
+  </div>
+  <div class="gallery-item" data-cat="myth" data-label="无面之神" data-cat-label="神话秘典">
+    <img src="assets/gallery/bd18a040-31db-4b5c-8804-56bfbff9561c_Art_nouveau_illustration_of_tarot_astrology,_The_Faceless_God,_who_looks_like_a_1.jpg" alt="无面之神" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">无面之神</span></div>
+  </div>
+  <div class="gallery-item" data-cat="myth" data-label="世界树特写" data-cat-label="神话秘典">
+    <img src="assets/gallery/e2fd3e81-b0dd-4445-b96f-4c822b654390_Art_nouveau_illustration_of_tarot_astrology,_closeup_headshot_world_tree._--ar_9_2.jpg" alt="世界树特写" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">世界树特写</span></div>
+  </div>
+  <div class="gallery-item" data-cat="myth" data-label="双月智慧树" data-cat-label="神话秘典">
+    <img src="assets/gallery/eada5a72-a09c-414b-9048-42cd4c8bed1e_Art_nouveau_illustration_of_tarot_astrology,_Golden_Wisdom_Tree._Two-Lunar_Moons_3.jpg" alt="双月智慧树" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">双月智慧树</span></div>
+  </div>
+  <div class="gallery-item" data-cat="myth" data-label="沼泽巨怪·甲" data-cat-label="神话秘典">
+    <img src="assets/gallery/5385e59b-b086-4542-b6aa-2ba80f604f32_Art_nouveau_illustration_of_tarot,_troll_of_mud_swamp._--v_6.0_--ar_916_0.jpg" alt="沼泽巨怪·甲" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">沼泽巨怪·甲</span></div>
+  </div>
+  <div class="gallery-item" data-cat="myth" data-label="沼泽巨怪·丁" data-cat-label="神话秘典">
+    <img src="assets/gallery/5385e59b-b086-4542-b6aa-2ba80f604f32_Art_nouveau_illustration_of_tarot,_troll_of_mud_swamp._--v_6.0_--ar_916_3.jpg" alt="沼泽巨怪·丁" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">沼泽巨怪·丁</span></div>
+  </div>
+  <div class="gallery-item" data-cat="myth" data-label="沼泽怪物" data-cat-label="神话秘典">
+    <img src="assets/gallery/b2b99b18-6307-4a16-a84e-ea7cbc702f06_Art_nouveau_illustration_of_tarot,_monster_of_mud_swamp._--v_5.2_--ar_916_0.jpg" alt="沼泽怪物" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">沼泽怪物</span></div>
+  </div>
+  <div class="gallery-item" data-cat="myth" data-label="沼泽史莱姆" data-cat-label="神话秘典">
+    <img src="assets/gallery/e7016374-cc16-41e7-a00d-8efe361c1d4e_Art_nouveau_illustration_of_tarot,_giant_slime_of_mud_swamp._--v_5.2_--ar_916_0.jpg" alt="沼泽史莱姆" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">沼泽史莱姆</span></div>
+  </div>
+
+  <!-- 菌林幻境补充 -->
+  <div class="gallery-item" data-cat="mushroom" data-label="蘑菇美女" data-cat-label="菌林幻境">
+    <img src="assets/gallery/08b1de4f-e706-44d8-bd9b-a675ba463d52_httpss.mj.run4oxSCh9ijk8_httpss.mj.run3eFUIoU9F24_mushroom_beauty_--niji_5_--ar_0.jpg" alt="蘑菇美女" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">蘑菇美女</span></div>
+  </div>
+  <div class="gallery-item" data-cat="mushroom" data-label="疯蘑菇美女" data-cat-label="菌林幻境">
+    <img src="assets/gallery/7b1d3d4b-c69f-4495-b0f6-daeab1249be8_httpss.mj.runbzGm_rTww5A_httpss.mj.runIStklT0hVm4_creazy_mushroom_beauty_--niji_1.jpg" alt="疯蘑菇美女" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">疯蘑菇美女</span></div>
+  </div>
+  <div class="gallery-item" data-cat="mushroom" data-label="蘑菇精灵" data-cat-label="菌林幻境">
+    <img src="assets/gallery/8a778720-8b9d-4bbb-b27d-af6d80027d2f_a_forest_of_little_mushroom_elves_httpss.mj.run5RoASjC_v9s_--niji_5_--style_scen_0.jpg" alt="蘑菇精灵" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">蘑菇精灵</span></div>
+  </div>
+  <div class="gallery-item" data-cat="mushroom" data-label="橙蘑菇女士" data-cat-label="菌林幻境">
+    <img src="assets/gallery/8b089c57-a037-4077-b772-112abcec91a0_Elegant_orange_mushroom_lady,_pretty,_alien,_tall,_full-figured,_dark_forest,_gl_1.jpg" alt="橙蘑菇女士" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">橙蘑菇女士</span></div>
+  </div>
+  <div class="gallery-item" data-cat="mushroom" data-label="蘑菇美女·变奏" data-cat-label="菌林幻境">
+    <img src="assets/gallery/8d1a02d8-9c1e-416d-916e-853d41c417b0_httpss.mj.run4oxSCh9ijk8_httpss.mj.run3eFUIoU9F24_mushroom_beauty_--niji_5_--sty_2.jpg" alt="蘑菇美女·变奏" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">蘑菇美女·变奏</span></div>
+  </div>
+
+  <!-- 神话秘典补充 -->
+  <div class="gallery-item" data-cat="myth" data-label="星光与知识" data-cat-label="神话秘典">
+    <img src="assets/gallery/8bb6830a-edbc-4f0d-9fca-85d000eb2f60_Art_nouveau_illustration_of_tarot_astrology_starlight_and_knowledge._young_girl_2.jpg" alt="星光与知识" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">星光与知识</span></div>
+  </div>
+
+  <!-- 碎片集 -->
+  <div class="gallery-item" data-cat="fragment" data-label="像素·森林祈愿" data-cat-label="碎片集">
+    <img src="assets/gallery/0dab2e88-d321-484d-b3f7-2a38186d1c9e_pixel_art,worship,_black_hair_beauty_in_forest._--niji_6_3.jpg" alt="像素·森林祈愿" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">像素·森林祈愿</span></div>
+  </div>
+  <div class="gallery-item" data-cat="fragment" data-label="像素·祈愿" data-cat-label="碎片集">
+    <img src="assets/gallery/bd8a9500-b754-4735-9d10-36230fa9ddd6_pixel_art,worship,_black_hair_beauty_--niji_6_--ar_169_3.jpg" alt="像素·祈愿" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">像素·祈愿</span></div>
+  </div>
+  <div class="gallery-item" data-cat="fragment" data-label="黎明号·出发" data-cat-label="碎片集">
+    <img src="assets/gallery/a11fce7f-3ee1-4943-89d1-dcf7e658ea97_The_gigantic_manned_spacecraft,_Dawn,_departed_from_Mars,_setting_sail_towards_t_0.jpg" alt="黎明号·出发" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">黎明号·出发</span></div>
+  </div>
+  <div class="gallery-item" data-cat="fragment" data-label="黎明号·远航" data-cat-label="碎片集">
+    <img src="assets/gallery/a11fce7f-3ee1-4943-89d1-dcf7e658ea97_The_gigantic_manned_spacecraft,_Dawn,_departed_from_Mars,_setting_sail_towards_t_1.jpg" alt="黎明号·远航" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">黎明号·远航</span></div>
+  </div>
+  <div class="gallery-item" data-cat="fragment" data-label="乐园地图" data-cat-label="碎片集">
+    <img src="assets/gallery/b1c07be1-ce1e-40a5-b35d-a0a599c08446_A_flat_map_of_an_amusement_park,_including_a_water_park,_a_dining_area,_and_an_e_3.jpg" alt="乐园地图" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">乐园地图</span></div>
+  </div>
+  <div class="gallery-item" data-cat="fragment" data-label="橙鸢尾标志·甲" data-cat-label="碎片集">
+    <img src="assets/gallery/dfe4137e-7e83-442a-ba8b-ab6c53d8525f_colorful_logo_design._abstract_style._The_orange_iris_holds_the_white_reeds_in_i_0.jpg" alt="橙鸢尾标志·甲" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">橙鸢尾标志·甲</span></div>
+  </div>
+  <div class="gallery-item" data-cat="fragment" data-label="橙鸢尾标志·乙" data-cat-label="碎片集">
+    <img src="assets/gallery/fe320bce-8fe4-4bf7-8b8d-c253bd8a0b68_colorful_logo_design._abstract_style._The_orange_iris_holds_the_white_reeds,_wit_0.jpg" alt="橙鸢尾标志·乙" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">橙鸢尾标志·乙</span></div>
+  </div>
+  <div class="gallery-item" data-cat="fragment" data-label="白底习作" data-cat-label="碎片集">
+    <img src="assets/gallery/2b6a2498-cce5-4cd4-a810-e986a6ca949f_httpss.mj.runwgaO12WlDhY_white_background_--niji_6_3.jpg" alt="白底习作" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">白底习作</span></div>
+  </div>
+  <div class="gallery-item" data-cat="fragment" data-label="或许是我" data-cat-label="碎片集">
+    <img src="assets/gallery/meOrNotMe.jpg" alt="或许是我" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">或许是我</span></div>
+  </div>
+  <div class="gallery-item" data-cat="fragment" data-label="暗黑法师" data-cat-label="碎片集">
+    <img src="assets/gallery/0d895784-5d1d-4861-8340-fa22b0f76307_httpss.mj.run49uXSiXzCZo_dark_oswald,_black_medium_hair,_wizard_robe,_Dark,_myst_0.jpg" alt="暗黑法师" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">暗黑法师</span></div>
+  </div>
+  <div class="gallery-item" data-cat="fragment" data-label="精细插画女" data-cat-label="碎片集">
+    <img src="assets/gallery/3bed04fa-9cc0-496b-a696-39e8a3dc8bc5_Full-body_shot,_exquisite_comic_illustration_A_fair-skinned_woman_with_light_yel_3.jpg" alt="精细插画女" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">精细插画女</span></div>
+  </div>
+  <div class="gallery-item" data-cat="fragment" data-label="活泼微笑" data-cat-label="碎片集">
+    <img src="assets/gallery/6dbc527b-635b-44fa-933b-4f0196b8e656_httpss.mj.runIPGgaf-P4zk_playful_smile,_--no_eye_circles,_--iw_0.9_2.jpg" alt="活泼微笑" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">活泼微笑</span></div>
+  </div>
+  <div class="gallery-item" data-cat="fragment" data-label="猫宝可梦" data-cat-label="碎片集">
+    <img src="assets/gallery/7e9920f4-16ff-4857-a533-5bb915bc0744_cat_pokemon,_sunlight_--niji_5_--style_cute_1.jpg" alt="猫宝可梦" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">猫宝可梦</span></div>
+  </div>
+  <div class="gallery-item" data-cat="fragment" data-label="荒野油画" data-cat-label="碎片集">
+    <img src="assets/gallery/7fdcf4dc-5674-42c1-a3dd-9efaeab79e7d_masterpiece,_landscape,_oil_paint._vast,_barren_and_desolate_wilderness,_the_set_3.jpg" alt="荒野油画" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">荒野油画</span></div>
+  </div>
+  <div class="gallery-item" data-cat="fragment" data-label="精细美人" data-cat-label="碎片集">
+    <img src="assets/gallery/8d8d7595-ef2e-4bfe-b864-696a22b2ebd3_httpss.mj.runCKRa074DKDg_httpss.mj.runud4SFUH2v7s_masterpiece,_Beautiful_detaile_1.jpg" alt="精细美人" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">精细美人</span></div>
+  </div>
+  <div class="gallery-item" data-cat="fragment" data-label="漫画封面" data-cat-label="碎片集">
+    <img src="assets/gallery/9a07eee3-5dc5-4bc7-a08b-b71c2a2fb017_center_the_composition._httpss.mj.runQrmyZuo_j80_Beautiful_detailed_comic_cover_2.jpg" alt="漫画封面" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">漫画封面</span></div>
+  </div>
+  <div class="gallery-item" data-cat="fragment" data-label="冷酷龙女仆·甲" data-cat-label="碎片集">
+    <img src="assets/gallery/9c1baeea-0772-4378-9dba-db5ddb32db48_A_cold_dragon_maid_is_cooking._She_has_dark_skin_and_white_hair._she_has_dragon_0.jpg" alt="冷酷龙女仆·甲" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">冷酷龙女仆·甲</span></div>
+  </div>
+  <div class="gallery-item" data-cat="fragment" data-label="冷酷龙女仆·丁" data-cat-label="碎片集">
+    <img src="assets/gallery/9c1baeea-0772-4378-9dba-db5ddb32db48_A_cold_dragon_maid_is_cooking._She_has_dark_skin_and_white_hair._she_has_dragon_3.jpg" alt="冷酷龙女仆·丁" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">冷酷龙女仆·丁</span></div>
+  </div>
+  <div class="gallery-item" data-cat="fragment" data-label="白发少女" data-cat-label="碎片集">
+    <img src="assets/gallery/9ee1892f-4ee5-407a-a410-0f7874287f04_The_slender,_thin_white-haired_girl_is_sitting_in_a_wooden_carriage._She_is_putt_3.jpg" alt="白发少女" loading="lazy"/>
+    <div class="gallery-item-overlay"><span class="gallery-item-label">白发少女</span></div>
+  </div>
+</div>
+
+<footer style="background:#020408;">
+  <p>✦ 白白菌 · 菌类居民 ✦ &nbsp;&nbsp;|&nbsp;&nbsp; <span>made by 优优菌</span></p>
+</footer>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <span class="lightbox-close" id="lbClose">✕</span>
+  <span class="lightbox-nav prev" id="lbPrev">‹</span>
+  <span class="lightbox-nav next" id="lbNext">›</span>
+  <div class="lightbox-img-wrap">
+    <img id="lbImg" src="" alt=""/>
+  </div>
+  <div class="lightbox-label" id="lbLabel"></div>
+</div>
+
+<script>
+// 过滤
+const filterBtns = document.querySelectorAll('.filter-btn');
+const items = document.querySelectorAll('.gallery-item');
+
+filterBtns.forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    filterBtns.forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const cat = btn.dataset.cat;
+    items.forEach(item=>{
+      if(cat==='all'||item.dataset.cat===cat){
+        item.classList.remove('hidden');
+      } else {
+        item.classList.add('hidden');
+      }
+    });
+    updateVisibleItems();
+  });
+});
+
+// Lightbox
+const lb = document.getElementById('lightbox');
+const lbImg = document.getElementById('lbImg');
+const lbLabel = document.getElementById('lbLabel');
+let currentIndex = 0;
+let visibleItems = [];
+
+function updateVisibleItems(){
+  visibleItems = [...document.querySelectorAll('.gallery-item:not(.hidden)')];
+}
+updateVisibleItems();
+
+function openLightbox(index){
+  currentIndex = index;
+  const item = visibleItems[index];
+  lbImg.src = item.querySelector('img').src;
+  lbLabel.textContent = item.dataset.label;
+  lb.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeLightbox(){
+  lb.classList.remove('open');
+  document.body.style.overflow='';
+}
+function navigate(dir){
+  currentIndex = (currentIndex+dir+visibleItems.length)%visibleItems.length;
+  openLightbox(currentIndex);
+}
+
+items.forEach((item,i)=>{
+  item.addEventListener('click',()=>{
+    updateVisibleItems();
+    const idx = visibleItems.indexOf(item);
+    if(idx>=0) openLightbox(idx);
+  });
+});
+
+document.getElementById('lbClose').addEventListener('click',closeLightbox);
+document.getElementById('lbPrev').addEventListener('click',()=>navigate(-1));
+document.getElementById('lbNext').addEventListener('click',()=>navigate(1));
+lb.addEventListener('click',e=>{
+  if(e.target===lb) closeLightbox();
+});
+document.addEventListener('keydown',e=>{
+  if(!lb.classList.contains('open')) return;
+  if(e.key==='Escape') closeLightbox();
+  if(e.key==='ArrowLeft') navigate(-1);
+  if(e.key==='ArrowRight') navigate(1);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>菌问好</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    /* ── 主页专属 ──────────────── */
+    .hero {
+      background-image: url('assets/bg/蘑菇背景4.png');
+    }
+
+    /* 头像容器 */
+    .avatar-wrap {
+      position: relative;
+      width: 148px; height: 148px;
+      margin: 0 auto 1.8rem;
+    }
+    .avatar-ring {
+      position:absolute; inset:-6px;
+      border-radius:50%;
+      background: conic-gradient(
+        var(--teal) 0%, var(--blue) 40%,
+        var(--gold) 65%, var(--teal) 100%
+      );
+      animation: spin-ring 8s linear infinite;
+      opacity: 0.8;
+    }
+    @keyframes spin-ring {
+      to { transform:rotate(360deg); }
+    }
+    .avatar-ring::after {
+      content:'';
+      position:absolute; inset:3px;
+      border-radius:50%;
+      background: var(--bg-deep);
+    }
+    .avatar-img {
+      position:relative; z-index:2;
+      width:148px; height:148px;
+      border-radius:50%;
+      object-fit:cover;
+      object-position:top;
+      box-shadow: 0 0 40px rgba(0,229,204,0.35);
+    }
+
+    /* 主名字 */
+    .hero-name {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(2.2rem, 5vw, 3.4rem);
+      font-weight: 700;
+      color: var(--text-bright);
+      letter-spacing: 0.08em;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 0 40px rgba(0,229,204,0.5), 0 2px 8px rgba(0,0,0,0.8);
+    }
+    .hero-role {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      font-style: italic;
+      color: var(--teal);
+      letter-spacing: 0.18em;
+      margin-bottom: 1.8rem;
+      opacity: 0.85;
+    }
+    .hero-bio {
+      font-size: 0.95rem;
+      color: var(--text-main);
+      max-width: 520px;
+      margin: 0 auto 2rem;
+      line-height: 1.9;
+    }
+    .hero-tags {
+      display:flex; flex-wrap:wrap;
+      justify-content:center;
+      gap:0.5rem;
+      margin-bottom: 2rem;
+    }
+    .hero-links {
+      display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- ── 导航 ──────────────────────────────── -->
+<nav>
+  <a href="index.html" class="nav-logo">✦ 白白菌 ✦</a>
+  <ul class="nav-links">
+    <li><a href="index.html" class="active">菌问好</a></li>
+    <li><a href="projects.html">菌在忙</a></li>
+    <li><a href="games.html">菌在玩</a></li>
+    <li><a href="gallery.html">菌做梦</a></li>
+  </ul>
+</nav>
+
+<!-- ── Hero ──────────────────────────────── -->
+<section class="hero">
+  <div class="hero-overlay"></div>
+
+  <!-- 孢子粒子 -->
+  <div class="particles" id="particles"></div>
+
+  <div class="hero-content">
+    <div class="avatar-wrap">
+      <div class="avatar-ring"></div>
+      <img class="avatar-img" src="assets/bg/lazy.png" alt="白白菌头像"/>
+    </div>
+
+    <div class="hero-name">白白菌</div>
+    <div class="hero-role">Target · 交互叙事 · 有益菌种</div>
+
+    <div class="hero-tags">
+      <span class="tag">LLM</span>
+      <span class="tag">搜索推荐</span>
+      <span class="tag">复杂网络</span>
+      <span class="tag">Agent开发</span>
+      <span class="tag">交互式叙事</span>
+      <span class="tag">跑团</span>
+    </div>
+
+    <p class="hero-bio">
+      技术是性感的，游戏也是。<br/>
+      我知道真正的沉浸是怎样梦幻的感觉，我希望将它带给更多的人。<br/>
+      ai真是太厉害了你知道吗。
+    </p>
+
+  </div>
+
+  <div class="scroll-hint">
+    <span>向下滚动</span>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M12 5v14M5 12l7 7 7-7"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ── 快速导航卡 ──────────────────────────── -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="ornament fade-in">
+      <div class="ornament-line"></div>
+      <div class="ornament-diamond"></div>
+      <div class="ornament-line right"></div>
+    </div>
+    <h2 class="section-title fade-in">探索</h2>
+    <p class="section-subtitle fade-in">Explore · 各区入口</p>
+
+    <div class="grid-3 fade-in">
+      <a href="projects.html" class="glass" style="padding:2rem;display:block;text-align:center;">
+        <div style="font-size:2.5rem;margin-bottom:1rem;">🍄</div>
+        <div style="font-family:'Cinzel Decorative',serif;font-size:0.9rem;color:var(--text-bright);letter-spacing:0.1em;margin-bottom:0.6rem;">个人项目</div>
+        <div style="font-size:0.82rem;color:var(--text-dim);">蘑菇汤计划 · 跑团工具箱<br/>Meta-Skill Set · 小说续写</div>
+      </a>
+      <a href="games.html" class="glass" style="padding:2rem;display:block;text-align:center;">
+        <div style="font-size:2.5rem;margin-bottom:1rem;">🎲</div>
+        <div style="font-family:'Cinzel Decorative',serif;font-size:0.9rem;color:var(--text-bright);letter-spacing:0.1em;margin-bottom:0.6rem;">游戏档案</div>
+        <div style="font-size:0.82rem;color:var(--text-dim);">跑团 · 策略 · 叙事 · 构筑<br/>多品类杂食玩家</div>
+      </a>
+      <a href="gallery.html" class="glass" style="padding:2rem;display:block;text-align:center;">
+        <div style="font-size:2.5rem;margin-bottom:1rem;">🖼️</div>
+        <div style="font-family:'Cinzel Decorative',serif;font-size:0.9rem;color:var(--text-bright);letter-spacing:0.1em;margin-bottom:0.6rem;">画廊</div>
+        <div style="font-size:0.82rem;color:var(--text-dim);">Art Nouveau · 蛛丝织梦<br/>菌林幻境 · 视觉审美</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>✦ 白白菌 · 菌类居民 ✦ &nbsp;&nbsp;|&nbsp;&nbsp; <span>made by 优优菌</span></p>
+</footer>
+
+<script>
+// 孢子粒子生成
+(function(){
+  const container = document.getElementById('particles');
+  const count = 40;
+  for(let i=0;i<count;i++){
+    const p = document.createElement('div');
+    p.className = 'spore';
+    const size = 2 + Math.random()*4;
+    const isGold = Math.random() < 0.15;
+    const color = isGold ? '200,168,75' : '0,229,204';
+    p.style.cssText = `
+      left:${Math.random()*100}%;
+      top:${100+Math.random()*10}%;
+      width:${size}px;height:${size}px;
+      background:rgba(${color},${0.4+Math.random()*0.5});
+      box-shadow:0 0 ${size*2.5}px rgba(${color},0.7);
+      animation-duration:${12+Math.random()*18}s;
+      animation-delay:-${Math.random()*25}s;
+    `;
+    container.appendChild(p);
+  }
+})();
+
+// 滚动入场动画
+const observer = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting) e.target.classList.add('visible');
+  });
+},{threshold:0.12});
+document.querySelectorAll('.fade-in').forEach(el=>observer.observe(el));
+</script>
+</body>
+</html>

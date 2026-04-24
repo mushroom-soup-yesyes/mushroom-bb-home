@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>菌在忙</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .hero {
+      background-image: url('assets/bg/蘑菇背景1.png');
+      min-height: 55vh;
+    }
+    .hero-content { padding-top:64px; }
+
+    /* 项目卡片 */
+    .proj-card {
+      padding: 2rem 2.2rem;
+      margin-bottom: 1.8rem;
+      position:relative;
+      overflow:hidden;
+    }
+    .proj-card::before {
+      content:'';
+      position:absolute; top:0; left:0;
+      width:3px; height:100%;
+      background:linear-gradient(to bottom, var(--teal), var(--blue));
+      border-radius:2px 0 0 2px;
+    }
+    .proj-card.gold::before {
+      background:linear-gradient(to bottom, var(--gold), rgba(200,168,75,0.3));
+    }
+    .proj-header {
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:1rem;
+      margin-bottom:0.8rem;
+    }
+    .proj-title {
+      font-family:'Cormorant Garamond',serif;
+      font-size:1.35rem;
+      font-weight:600;
+      color:var(--text-bright);
+      letter-spacing:0.04em;
+    }
+    .proj-year {
+      font-size:0.78rem;
+      color:var(--teal);
+      background:rgba(0,229,204,0.08);
+      border:1px solid var(--teal-dim);
+      border-radius:999px;
+      padding:0.2rem 0.8rem;
+      flex-shrink:0;
+      font-family:'Cormorant Garamond',serif;
+      letter-spacing:0.1em;
+    }
+    .proj-year.gold {
+      color:var(--gold);
+      background:rgba(200,168,75,0.08);
+      border-color:var(--gold-dim);
+    }
+    .proj-desc {
+      font-size:0.88rem;
+      color:var(--text-main);
+      line-height:1.85;
+      margin-bottom:1rem;
+    }
+    .proj-bullets {
+      list-style:none;
+      display:flex; flex-direction:column; gap:0.5rem;
+    }
+    .proj-bullets li {
+      font-size:0.85rem;
+      color:var(--text-main);
+      padding-left:1.2rem;
+      position:relative;
+      line-height:1.75;
+    }
+    .proj-bullets li::before {
+      content:'›';
+      position:absolute; left:0;
+      color:var(--teal);
+      font-size:1rem;
+    }
+    .proj-bullets li strong { color:var(--text-bright); }
+    .proj-tags { display:flex; flex-wrap:wrap; gap:0.4rem; margin-top:1rem; }
+
+    /* 截图展示 */
+    .proj-screenshot {
+      border-radius:10px;
+      overflow:hidden;
+      border:1px solid var(--teal-dim);
+      margin-top:1.2rem;
+      max-height:260px;
+      cursor: zoom-in;
+      position: relative;
+    }
+    .proj-screenshot::after {
+      content: '⊕';
+      position: absolute;
+      bottom: 8px; right: 10px;
+      font-size: 1.1rem;
+      color: rgba(0,229,204,0.7);
+      text-shadow: 0 0 8px rgba(0,229,204,0.5);
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .proj-screenshot:hover::after { opacity: 1; }
+    .proj-screenshot img {
+      width:100%; height:100%;
+      object-fit:cover;
+      transition:transform 0.4s;
+    }
+    .proj-screenshot:hover img { transform:scale(1.03); }
+
+    /* 图片灯箱 */
+    #img-lightbox {
+      display: none;
+      position: fixed; inset: 0;
+      z-index: 9999;
+      background: rgba(2,4,14,0.92);
+      backdrop-filter: blur(12px);
+      align-items: center;
+      justify-content: center;
+    }
+    #img-lightbox.open { display: flex; }
+    #img-lightbox img {
+      max-width: 90vw;
+      max-height: 88vh;
+      border-radius: 10px;
+      box-shadow: 0 0 60px rgba(0,229,204,0.2);
+      border: 1px solid var(--teal-dim);
+      object-fit: contain;
+    }
+    #lb-close {
+      position: absolute; top: 1.5rem; right: 2rem;
+      font-size: 2rem;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: color 0.2s;
+      line-height: 1;
+    }
+    #lb-close:hover { color: var(--teal); }
+
+    /* 菌种三人组 */
+    .shroom-trio {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    @media(max-width:700px){ .shroom-trio { grid-template-columns:1fr; } }
+    .shroom-mini {
+      position: relative;
+      background: rgba(10,15,26,0.65);
+      border: 1px solid var(--teal-dim);
+      border-radius: 10px;
+      padding: 1rem;
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.14s;
+      user-select: none;
+    }
+    .shroom-mini:hover { transform: translateY(-3px); border-color: rgba(0,229,204,0.3); }
+    .shroom-mini.pop { animation: shroom-pop 0.28s ease; }
+    @keyframes shroom-pop {
+      0%   { transform: scale(1); }
+      35%  { transform: scale(0.92); }
+      70%  { transform: scale(1.04); }
+      100% { transform: scale(1); }
+    }
+    .shroom-mini img {
+      height: 110px; width: auto;
+      display: block; margin: 0 auto 0.6rem;
+      object-fit: contain;
+    }
+    .shroom-mini-name {
+      font-weight: 700; font-size: 0.84rem;
+      margin-bottom: 0.35rem;
+    }
+    .shroom-mini-desc {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      line-height: 1.55;
+    }
+    .shroom-mini-bubble {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 8px); left: 50%;
+      transform: translateX(-50%);
+      width: 185px;
+      background: rgba(4,8,22,0.96);
+      border: 1px solid var(--teal-dim);
+      border-radius: 10px;
+      padding: 0.65rem 0.9rem;
+      font-size: 0.78rem;
+      color: var(--text-main);
+      line-height: 1.6;
+      z-index: 10;
+      text-align: left;
+      animation: bubble-up 0.22s cubic-bezier(.34,1.4,.64,1) forwards;
+    }
+    .shroom-mini-bubble::after {
+      content: '';
+      position: absolute;
+      top: 100%; left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: var(--teal-dim);
+    }
+    @keyframes bubble-up {
+      from { opacity:0; transform: translateX(-50%) translateY(6px) scale(0.9); }
+      to   { opacity:1; transform: translateX(-50%) translateY(0)   scale(1);   }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">✦ 白白菌 ✦</a>
+  <ul class="nav-links">
+    <li><a href="index.html">菌问好</a></li>
+    <li><a href="projects.html" class="active">菌在忙</a></li>
+    <li><a href="games.html">菌在玩</a></li>
+    <li><a href="gallery.html">菌做梦</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-overlay"></div>
+  <div class="particles" id="particles"></div>
+  <div class="hero-content" style="text-align:center;padding:0 2rem;">
+    <div style="font-family:'Cinzel Decorative',serif;font-size:clamp(1.8rem,4vw,3rem);color:var(--text-bright);letter-spacing:0.1em;text-shadow:0 0 40px rgba(0,229,204,0.4);">
+      ……菌在忙
+    </div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--teal);letter-spacing:0.2em;font-style:italic;margin-top:0.6rem;opacity:0.8;">
+      Laboratory · Projects
+    </div>
+  </div>
+</section>
+
+<!-- ── 个人项目 ──────────────────────────────── -->
+<section class="section">
+  <div class="container">
+    <div class="ornament fade-in">
+      <div class="ornament-line"></div>
+      <div class="ornament-diamond"></div>
+      <div class="ornament-line right"></div>
+    </div>
+    <!-- Mushroom Project -->
+    <div class="glass proj-card fade-in">
+      <div class="proj-header">
+        <div class="proj-title">🍄 蘑菇汤计划</div>
+        <span class="proj-year">2026.02 – 至今</span>
+      </div>
+      <p class="proj-desc">
+        高可扩展性本地知识库及一系列场景化应用 Agent 的系统性工程项目。
+        摒弃传统向量化路径，提出 embedding-free 预索引架构，逐渐与 agentic search 范式对齐。
+      </p>
+      <ul class="proj-bullets">
+        <li>
+          <strong>无向量预索引引擎（mushroom-index）</strong>：
+          设计"实体-文本块"二分图模型，规避状态更新错乱与错误级联，实现知识链接线性可扩展。
+        </li>
+        <li>
+          <strong>多模态预索引引擎（myco-library）</strong>：
+          扩展至多模态跨文件场景，针对不同内容节点实现差异化索引策略；
+          工程底层实现断点续建、多级变更检测局部更新；双层采样策略大幅降低 Token 消耗。
+        </li>
+        <li>
+          <strong>共享基建场景化 Agent</strong>：
+          基于共享知识库构建 GitHub 项目调研助手、小众竞品调研助手、个人简历管家，
+          封装差异化工具集与行为策略。
+        </li>
+        <li>
+          <strong>解析流水线并发提速</strong>：
+          "预采样生成 Schema → 模型路由 → 并发批处理"Pipeline，将百万字文档解析耗时从小时级压缩至分钟级。
+        </li>
+      </ul>
+      <div class="proj-tags">
+        <span class="tag">Python</span>
+        <span class="tag">LangChain</span>
+        <span class="tag">Claude API</span>
+        <span class="tag">图结构</span>
+        <span class="tag">多模态</span>
+        <span class="tag">并发处理</span>
+      </div>
+      <div class="shroom-trio">
+        <div class="shroom-mini" id="sm-uu">
+          <div class="shroom-mini-bubble"></div>
+          <img src="ref/char_uu.png" alt="优优菌"/>
+          <div class="shroom-mini-name" style="color:#d4a96a;">🍄 优优菌</div>
+          <div class="shroom-mini-desc">智能简历助手。用户只需把相关资料放进目录，优优菌自动将散乱文件整理成结构化用户知识，进而支撑简历生成、润色、网申助手等应用。</div>
+        </div>
+        <div class="shroom-mini" id="sm-ll">
+          <div class="shroom-mini-bubble"></div>
+          <img src="ref/char_ll.png" alt="懒懒菌"/>
+          <div class="shroom-mini-name" style="color:#7ab8e0;">🔍 懒懒菌</div>
+          <div class="shroom-mini-desc">GitHub 检索助手。在拆解用户意图的基础上进行多轮检索，漏斗式、渐进式读取对比相关开源项目，拒绝重复造轮子。</div>
+        </div>
+        <div class="shroom-mini" id="sm-kk">
+          <div class="shroom-mini-bubble"></div>
+          <img src="ref/char_kk.png" alt="看看菌"/>
+          <div class="shroom-mini-name" style="color:#e8a0b8;">👀 看看菌</div>
+          <div class="shroom-mini-desc">长尾竞品调研助手。配置多路平台信息检索，挖掘主体关键词及账号，设置定期追踪任务，避免遗漏长尾应用动态。</div>
+        </div>
+      </div>
+      <p style="text-align:center;font-size:0.72rem;color:var(--text-dim);letter-spacing:0.15em;margin-top:0.8rem;opacity:0.6;">戳一戳，她们会说话</p>
+    </div>
+
+    <!-- 跑团工具箱 -->
+    <div class="glass proj-card fade-in">
+      <div class="proj-header">
+        <div class="proj-title">🎲 跑团工具箱</div>
+        <span class="proj-year">2023</span>
+      </div>
+      <p class="proj-desc">
+        为跑团固桌搭建的 AI 辅助工具集，覆盖带团全流程的生产力需求。
+      </p>
+      <ul class="proj-bullets">
+        <li>基于 LangChain 搭建核心管线，集成<strong>即时数值计算器</strong>和结合卡面的<strong>资源生成器</strong>，显著提升游戏内容生产效率和交互体验。</li>
+        <li>支持卡面解析、卡面问答、资源生成、即时计算等多类带团辅助功能。</li>
+      </ul>
+      <div class="proj-tags">
+        <span class="tag">LangChain</span>
+        <span class="tag">COC / DND</span>
+        <span class="tag">卡面解析</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.2rem;">
+        <div class="proj-screenshot">
+          <img src="assets/shots/OSW1.jpg" alt="OSW 截图 1"/>
+        </div>
+        <div class="proj-screenshot">
+          <img src="assets/shots/OSW2.jpg" alt="OSW 截图 2"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRPG Meta-Skill Set -->
+    <div class="glass proj-card fade-in">
+      <div class="proj-header">
+        <div class="proj-title">🎯 TRPG Meta-Skill Set</div>
+        <span class="proj-year">2026.04</span>
+      </div>
+      <p class="proj-desc">
+        设计"模组规则卡面解析 → 车卡引导"元技能套件，构建 AI 赋能的全流程跑团角色生成方案。
+      </p>
+      <ul class="proj-bullets">
+        <li>从用户上传素材孵化对应<strong>世界观 / 数值引擎 / 建卡流程</strong> skill 作为可插拔模块。</li>
+        <li>主入口 skill 根据意图生成角色卡初稿，实现可编辑 HTML 卡面并导出适配 Excel。</li>
+      </ul>
+      <div class="proj-tags">
+        <span class="tag">Claude Code</span>
+        <span class="tag">Meta-Skill</span>
+        <span class="tag">COC / DND</span>
+        <span class="tag">HTML 生成</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.2rem;">
+        <div class="proj-screenshot">
+          <img src="assets/shots/coc ai车卡器.png" alt="COC AI 车卡器"/>
+        </div>
+        <div class="proj-screenshot">
+          <img src="assets/shots/trpg车卡结果.jpg" alt="TRPG 车卡结果"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- 长文本生成 -->
+    <div class="glass proj-card fade-in">
+      <div class="proj-header">
+        <div class="proj-title">📝 长文本生成与解构 Demo</div>
+        <span class="proj-year">2025</span>
+      </div>
+      <p class="proj-desc">
+        独立开发的小说续写 Demo——支持文风自适应的长文本生成引擎。
+        量化并定义多维度的句法 / 语义评估指标，
+        基于 DSPy 和 TextGrad 技术实现 prompt 的文风自优化。
+      </p>
+      <div class="proj-tags">
+        <span class="tag">DSPy</span>
+        <span class="tag">TextGrad</span>
+        <span class="tag">文风自适应</span>
+        <span class="tag">Prompt 优化</span>
+      </div>
+      <div class="proj-screenshot" style="margin-top:1.2rem;">
+        <img src="assets/shots/小说续写demo.jpg" alt="小说续写 Demo"/>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- 灯箱 -->
+<div id="img-lightbox">
+  <span id="lb-close">✕</span>
+  <img id="lb-img" src="" alt=""/>
+</div>
+
+<footer>
+  <p>✦ 白白菌 · 菌类居民 ✦ &nbsp;&nbsp;|&nbsp;&nbsp; <span>made by 优优菌</span></p>
+</footer>
+
+<script>
+// 截图灯箱
+const lb = document.getElementById('img-lightbox');
+const lbImg = document.getElementById('lb-img');
+document.querySelectorAll('.proj-screenshot img').forEach(img => {
+  img.addEventListener('click', () => {
+    lbImg.src = img.src;
+    lb.classList.add('open');
+  });
+});
+document.getElementById('lb-close').addEventListener('click', () => lb.classList.remove('open'));
+lb.addEventListener('click', e => { if (e.target === lb) lb.classList.remove('open'); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') lb.classList.remove('open'); });
+
+// 蘑菇娘戳一戳
+const SHROOM_QUOTES = {
+  'sm-uu': ['材料散一点没关系，我整理这个比你收拾桌面快多了。','这段话面试官不会往下看——太平了，改。','JD 写得云里雾里，但我知道背后的面试官想要什么。','给我数字。"负责若干项目"这种话，ATS 和人都要跳过。','好简历不是写出来的，是从你做过的事里挖出来的。'],
+  'sm-ll': ['你说的这个，GitHub 上已经有三个实现了，要我帮你比一比吗？','Star 数会骗人，issue 区才说实话。','先把需求说清楚再搜。乱搜一通不如不搜。','这个库上次 commit 在两年前——死项目，下一个。','能复用就复用，这不是偷懒，这叫工程判断。'],
+  'sm-kk': ['嘻嘻……小~可~爱~~找到你咯——','怎么还没更新？这都足足一整天了！','哦呀……还可以这么找……','主流搜不到可不代表没有……这些小家伙，很有活力呢。']
+};
+document.querySelectorAll('.shroom-mini').forEach(card => {
+  const bubble = card.querySelector('.shroom-mini-bubble');
+  card.addEventListener('click', () => {
+    const lines = SHROOM_QUOTES[card.id];
+    bubble.textContent = lines[Math.floor(Math.random() * lines.length)];
+    const isShown = bubble.style.display === 'block';
+    document.querySelectorAll('.shroom-mini-bubble').forEach(b => { b.style.display = 'none'; });
+    if (!isShown) bubble.style.display = 'block';
+    card.classList.add('pop');
+    card.addEventListener('animationend', () => card.classList.remove('pop'), { once: true });
+  });
+});
+document.addEventListener('click', e => {
+  if (!e.target.closest('.shroom-mini'))
+    document.querySelectorAll('.shroom-mini-bubble').forEach(b => { b.style.display = 'none'; });
+});
+
+(function(){
+  const container = document.getElementById('particles');
+  for(let i=0;i<30;i++){
+    const p = document.createElement('div');
+    p.className = 'spore';
+    const size = 2 + Math.random()*3;
+    p.style.cssText = `
+      left:${Math.random()*100}%;top:${100+Math.random()*10}%;
+      width:${size}px;height:${size}px;
+      background:rgba(0,229,204,${0.35+Math.random()*0.5});
+      box-shadow:0 0 ${size*2}px rgba(0,229,204,0.6);
+      animation-duration:${14+Math.random()*16}s;
+      animation-delay:-${Math.random()*25}s;
+    `;
+    container.appendChild(p);
+  }
+})();
+const observer = new IntersectionObserver(e=>{
+  e.forEach(el=>{ if(el.isIntersecting) el.target.classList.add('visible'); });
+},{threshold:0.1});
+document.querySelectorAll('.fade-in').forEach(el=>observer.observe(el));
+</script>
+</body>
+</html>
