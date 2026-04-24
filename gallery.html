@@ -130,7 +130,7 @@
       padding:1rem;
     }
     .gallery-item:hover .gallery-item-overlay { opacity:1; }
-    .gallery-item-label {
+    .gallery-item-label { display: none; }
       font-family:'Noto Serif SC',serif;
       font-size:0.8rem;
       color:var(--text-bright);
@@ -187,13 +187,7 @@
       box-shadow:0 0 80px rgba(0,0,0,0.8);
       border:1px solid rgba(0,229,204,0.12);
     }
-    .lightbox-label {
-      margin-top:1.2rem;
-      font-family:'Noto Serif SC',serif;
-      font-size:0.9rem;
-      color:var(--text-main);
-      letter-spacing:0.15em;
-    }
+    .lightbox-label { display: none; }
     .lightbox-close {
       position:fixed; top:1.5rem; right:2rem;
       font-size:2rem; color:var(--text-dim);
@@ -228,7 +222,7 @@
 
 <!-- 画廊头部 -->
 <div class="gallery-header">
-  <div class="gallery-title">"ai真是太厉害了你知道吗"</div>
+  <div class="gallery-title">"ai太好用了你知道吗。"</div>
   <div class="gallery-sub">Gallery · 审美存档</div>
 
   <!-- 过滤器 -->
